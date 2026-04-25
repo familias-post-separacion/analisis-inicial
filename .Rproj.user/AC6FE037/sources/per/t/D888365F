@@ -1,0 +1,31 @@
+{
+    "id": "D888365F",
+    "path": "~/GitHub/analisis-inicial/processing/analisis.qmd",
+    "project_path": "processing/analisis.qmd",
+    "type": "quarto_markdown",
+    "hash": "3907045658",
+    "contents": "",
+    "dirty": false,
+    "created": 1777075509824.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "rmdVisualMode": "false",
+        "rmdVisualWrapConfigured": "true",
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "16,11",
+        "scrollLine": "7",
+        "docOutlineVisible": "1",
+        "rmdVisualCollapsedChunks": ""
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1777077294,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1777077294964,
+    "read_only": false,
+    "read_only_alternatives": []
+}

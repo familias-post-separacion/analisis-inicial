@@ -1,0 +1,28 @@
+{
+    "id": "FEC462BF",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1777074500224.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "id": "6712142b038040eea4eda998b4d30418",
+        "name": "toks_sentencia",
+        "title": "toks_sentencia",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 6588612840313326195,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1777074500224,
+    "read_only": false,
+    "read_only_alternatives": []
+}
