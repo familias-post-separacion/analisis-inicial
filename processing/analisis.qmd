@@ -27,7 +27,7 @@ lang: es
 #| message: false
 
 #install.packages("pdftools")
-pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats, quanteda.textplots, dplyr, ggplot2)
+pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats, quanteda.textplots, dplyr, ggplot2, reticulate, purrr, knitr, kableExra)
 texto <- pdf_text("../input/sentencia.pdf") 
 texto <- str_to_lower(texto)
 
@@ -143,13 +143,10 @@ psentencia <- objeto_palabra(dfm_sentencia)
 
 ```
 
-
-# Características del documento de sentencia
-
-Se trata de un documento de 60 páginas. 
+# I. Análisis léxico-estadístico
 
 
-## Palabras más repetidas
+## a) Palabras más repetidas
 
 ```{r}
 #| echo: false
@@ -183,7 +180,7 @@ ggplot(psentencia,aes(x=palabra,y=freq))+
 
 
 
-## Oraciones de palabras claves
+## b) Oraciones de palabras claves
 
 ```{r}
 #| echo: false
@@ -324,5 +321,165 @@ generar_tabla(contexto_sentencia, "infidelidad")
 #| warning: false
 #| echo: false
 generar_tabla(contexto_sentencia, "intimidad")
+```
+
+
+# II. Análisis sintáctico-semántico
+
+## a) Análisis de sentimientos 
+
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+install.packages("reticulate")
+library(reticulate)
+# Reinicia R primero (Ctrl + Shift + F10 en RStudio)
+
+#reticulate::use_python(
+ # "C:/Users/LENOVO/AppData/Local/Programs/Python/Python311/python.exe",
+  #required = TRUE)
+
+
+#reticulate::virtualenv_create(
+ # envname = "r-transformers-311",
+#  python  = "C:/Users/LENOVO/AppData/Local/Programs/Python/Python311/python.exe")
+
+#reticulate::use_virtualenv("r-transformers-311", required = TRUE)
+
+#reticulate::py_install(
+ # packages = c("transformers", "sentencepiece"),
+#  envname  = "r-transformers-311",
+ # pip      = TRUE)
+
+
+
+#reticulate::py_run_string("import torch")
+
+#reticulate::py_run_string("import torch; print(torch.__version__)")
+
+# Crear entorno conda con Python 3.11
+reticulate::conda_create(
+  envname  = "r-torch",
+  packages = "python=3.11",
+  conda    = "C:/Users/LENOVO/miniconda3/Scripts/conda.exe"
+)
+
+
+reticulate::use_condaenv(
+  condaenv = "C:/Users/LENOVO/miniconda3/envs/r-torch",
+  required = TRUE
+)
+
+reticulate::conda_install(
+  envname  = "r-torch",
+  packages = c("pytorch==2.4.0", "cpuonly"),
+  channel  = "pytorch",
+  conda    = "C:/Users/LENOVO/miniconda3/Scripts/conda.exe"
+)
+
+reticulate::conda_install(
+  envname  = "r-torch",
+  packages = c("transformers==4.40.0", "sentencepiece"),
+  pip      = TRUE,
+  conda    = "C:/Users/LENOVO/miniconda3/Scripts/conda.exe"
+)
+
+#reticulate::py_run_string("import torch; print(torch.__version__)")
+
+transformers <- reticulate::import("transformers")
+
+classifier <- transformers$pipeline(
+  task  = "text-classification",
+  model = "pysentimiento/robertuito-sentiment-analysis"
+)
+
+
+# quaneda
+
+menciones_conyuge <- toks_sentencia %>% 
+  kwic( pattern = "cónyuge",  window = 12)  
+
+# Armar dataframe con los primeros 10 extractos
+data <- data.frame(pre  = menciones_conyuge$pre, post = menciones_conyuge$post ) %>% 
+  slice(1:67) %>% 
+  mutate(text = paste(pre, post)) %>% 
+  select(text)
+
+# Predecir sentimiento para cada uno de los textos
+out <-  map(data$text, classifier)
+
+# Extraer la etiqueta de cada predicción
+labels <- flatten(out) %>%
+  map_chr(1)
+
+# Extraer probabilidad de cada predicción
+prob <- flatten(out) %>%
+  map_dbl(2)
+
+# Añadir columnas a data frame
+data <- data %>% 
+  mutate(sentiment = labels,
+         prob = prob)
+```
+### Cónyuge
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+data %>% 
+  kableExtra::kbl() %>% 
+  kableExtra::kable_styling(font_size = 20)
+  
+```
+
+### Infidelidad 
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# quaneda
+
+menciones_infidelidad <- toks_sentencia %>% 
+  kwic( pattern = "infidelidad",  window = 12)  
+
+# Armar dataframe con los primeros 10 extractos
+data1 <- data.frame(pre  = menciones_infidelidad$pre, post = menciones_infidelidad$post ) %>% 
+  slice(1:48) %>% 
+  mutate(text = paste(pre, post)) %>% 
+  select(text)
+
+# Predecir sentimiento para cada uno de los textos
+out1 <-  map(data1$text, classifier)
+
+# Extraer la etiqueta de cada predicción
+labels1 <- flatten(out1) %>%
+  map_chr(1)
+
+# Extraer probabilidad de cada predicción
+prob1 <- flatten(out1) %>%
+  map_dbl(2)
+
+# Añadir columnas a data frame
+data1 <- data1 %>% 
+  mutate(sentiment = labels1,
+         prob = prob1) 
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+data1 %>% 
+  kableExtra::kbl() %>% 
+  kableExtra::kable_styling(font_size = 20)
 ```
 

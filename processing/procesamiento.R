@@ -31,7 +31,36 @@ toks_sentencia <-  corpus_sentecia %>%
   tokens()
 
 # generamos un objeto que contenga las stopwords
-#stopwords_personalizadas <- c()
+stopwords_personalizadas <- c("con", 
+                              "de", 
+                              "del", 
+                              "aquel", 
+                              "la", 
+                              "el", 
+                              "por", 
+                              "que", 
+                              "su", 
+                              "una", 
+                              "un",
+                              "y",
+                              "los", 
+                              "a",
+                              "se",
+                              "(",
+                              ")",
+                              ".",
+                              ",", 
+                              ";",
+                              ":",
+                              "/")
+
+# matriz DFM 
+
+# generamos matriz DFM para los tokens de las canciones de 1960
+dfm_sentencia <- toks_sentencia %>%
+  tokens_select(pattern = stopwords_personalizadas, selection = "remove") %>% # remover stopwords
+  dfm()  
+
 
 dfm_sentencia <- toks_sentencia %>%
   dfm()  
