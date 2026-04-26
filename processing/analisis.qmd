@@ -27,7 +27,7 @@ lang: es
 #| message: false
 
 #install.packages("pdftools")
-pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats, quanteda.textplots, dplyr)
+pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats, quanteda.textplots, dplyr, ggplot2)
 texto <- pdf_text("../input/sentencia.pdf") 
 texto <- str_to_lower(texto)
 
@@ -41,6 +41,80 @@ texto <- str_to_lower(texto)
 corpus_sentecia <- corpus(unlist(texto))
 toks_sentencia <-  corpus_sentecia %>% 
   tokens()
+
+
+# generamos un objeto que contenga las stopwords
+stopwords_personalizadas <- c("con", 
+                              "de", 
+                              "del", 
+                              "aquel", 
+                              "la", 
+                              "el", 
+                              "por", 
+                              "que", 
+                              "su", 
+                              "una", 
+                              "un",
+                              "y",
+                              "los", 
+                              "a",
+                              "se",
+                              "(",
+                              ")",
+                              ".",
+                              ",", 
+                              ";",
+                              ":",
+                              "/",
+                              "[",
+                              "]",
+                              "en",
+                              "lo",
+                              "es",
+                              "como",
+                              "no",
+                              "para",
+                              "las",
+                              "ella",
+                              "o",
+                              "sus",
+                              "-",
+                              "al",
+                              "año",
+                              "pero",
+                              "$",
+                              "dice",
+                              "también",
+                              "tiene",
+                              "ya",
+                              "don",
+                              "doña",
+                              "este",
+                              "le",
+                              "si",
+                              "solo",
+                              "desde",
+                              "césar",
+                              "quien",
+                              "señala",
+                              "sólo",
+                              "él",
+                              "ha",
+                              "fue",
+                              "más",
+                              "porque",
+                              "2020",
+                              "2",
+                              "4"
+                              )
+
+# matriz DFM 
+
+# generamos matriz DFM para los tokens de las canciones de 1960
+dfm_sentencia <- toks_sentencia %>%
+  tokens_select(pattern = stopwords_personalizadas, selection = "remove") %>% # remover stopwords
+  dfm()  
+
 ```
 
 ```{r}
@@ -48,8 +122,76 @@ toks_sentencia <-  corpus_sentecia %>%
 #| warning: false
 #| message: false
 
+# generamos funcion "objeto_palabra"
+objeto_palabra <- function(dfm_obj) {
+  
+  # calculamos las 20 palabras más frecuenctes
+  palabras <- dfm_obj %>% 
+    quanteda::topfeatures(n = 20)
+  
+  # convertimos en un data frame que contenga las palabras y su frecuencia
+  resultado <- data.frame(palabra = names(palabras), #generamos variable palabra
+                          freq = as.numeric(palabras))# generamos variable freq
+
+    # retornamos el resultado
+    return(resultado)
+}
+
+# almacenamos el data frame en un objeto para 1960
+psentencia <- objeto_palabra(dfm_sentencia)
+
+
+```
+
+
+# Características del documento de sentencia
+
+Se trata de un documento de 60 páginas. 
+
+
+## Palabras más repetidas
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# generamos grafico para las 20 palabras más frecuentes en las canciones de 1960
+ggplot(psentencia,aes(x=palabra,y=freq))+
+  geom_bar(stat = "identity", 
+           color="#9265A6", 
+           fill = "#9265A6") +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(title = "Frecuencias 20 palabras más repetidas en la sentencia", 
+      x = "Palabras", 
+      y = "Frecuencia",
+      caption = "Fuente: Elaboración propia.")  +
+  theme_bw()  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 12,
+                                  face = "italic", 
+                                  color = "black", 
+                                  hjust = 0.5),
+        plot.margin = margin(t = 20, r = 20, b = 20, l = 20)) +
+  geom_text(aes(label = paste0(round(freq, 1))), 
+            stat = "identity", 
+            vjust = -0.5, 
+            color = "black",
+            position = position_dodge(width=0.9), 
+            size = 4)
+```
+
+
+
+## Oraciones de palabras claves
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
 # se almacena en el objeto keywords las palabras que nos interesen
-keywords <- c("amor", "quiero", "infidelidad")
+keywords <- c("casa","cónyuge", "familia", "familiar", "hijos", "matrimonio", "reconvencional", "relación","intimidad", "infidelidad")
 
 # inicializamos la lista para 1960
 contexto_sentencia <- list()
@@ -57,7 +199,7 @@ contexto_sentencia <- list()
 
 # iteramos el cálculo de las 7 palabras anteriores y las 7 palabras posteriores a cada tópico de 1960
 for (i in keywords) {
-  contexto_sentencia[[i]] <- toks_sentencia %>% kwic(pattern = i, window = 7)
+  contexto_sentencia[[i]] <- toks_sentencia %>% kwic(pattern = i, window = 12)
 }
 ```
 
@@ -75,14 +217,34 @@ generar_tabla <- function(contexto_sentencia_list, i) {
   letra <- as.data.frame(letra) %>% select(pre, keyword, post)
   
   # creamos objeto tabla con su formato personalizado 
-  tabla <- letra %>% knitr::kable(format = "html",
-                                  aling = "c",
-                                  col.names = c("Oración anterior", "Palabra", "Oración posterior")) %>% # agregamos título de columnas 
-    kableExtra::kable_minimal() %>% 
-    kableExtra::row_spec(0, background = "#9A8FA6") %>%
-    kableExtra::column_spec(1, background = "white")  %>%
-    kableExtra::column_spec(2, background = "white", bold = TRUE )  %>%
-    kableExtra::column_spec(3, background = "white")
+ tabla <- letra %>% 
+  knitr::kable(
+    format = "html",
+    align = "c",
+    col.names = c("Oración anterior", "Palabra", "Oración posterior")
+  ) %>%
+  kableExtra::kable_styling(
+    bootstrap_options = "basic",
+    full_width = FALSE,
+    position = "center",
+    font_size = 12
+  ) %>%
+  # Encabezado en negrita, sin color de fondo
+  kableExtra::row_spec(
+    0,
+    bold = TRUE,
+    background = "white",
+    extra_css = "border-top: 2px solid black; border-bottom: 1px solid black;"
+  ) %>%
+  # Filas del cuerpo sin fondo alternado
+  kableExtra::column_spec(1, background = "white") %>%
+  kableExtra::column_spec(2, background = "white", bold = FALSE) %>%
+  kableExtra::column_spec(3, background = "white") %>%
+  # Línea inferior de la tabla
+  kableExtra::row_spec(
+    nrow(letra),
+    extra_css = "border-bottom: 2px solid black;"
+  )
   
   
   # retorna la tabla 
@@ -92,13 +254,75 @@ generar_tabla <- function(contexto_sentencia_list, i) {
 
 ```
 
-# Infidelidad 
+### Casa
 
-En la tabla se observan las palabras...
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "casa")
+```
+
+### Cónyuge
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "cónyuge")
+```
+
+### Familia
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "familia")
+```
+
+### Familiar
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "familiar")
+```
+
+### Hijos
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "hijos")
+```
+
+### Matrimonio
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "matrimonio")
+```
+
+
+### Relación 
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "relación")
+```
+
+### Infidelidad 
 
 ```{r}
 #| warning: false
 #| echo: false
 generar_tabla(contexto_sentencia, "infidelidad")
+```
+
+
+### Intimidad
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "intimidad")
 ```
 
