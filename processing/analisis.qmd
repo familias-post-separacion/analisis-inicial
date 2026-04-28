@@ -27,7 +27,7 @@ lang: es
 #| message: false
 
 #install.packages("pdftools")
-pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats, quanteda.textplots, dplyr, ggplot2, reticulate, purrr, knitr, kableExra)
+pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats, quanteda.textplots, dplyr, ggplot2, reticulate, purrr, knitr, kableExra, tidytext, topicmodels, tidyr)
 texto <- pdf_text("../input/sentencia.pdf") 
 texto <- str_to_lower(texto)
 
@@ -483,3 +483,319 @@ data1 %>%
   kableExtra::kable_styling(font_size = 20)
 ```
 
+
+## b) Embeddings
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(word2vec)
+
+# ENTRENAR MÓDELO -----------------
+
+x <- texto  # cada elemento = texto completo de una página
+
+# Con páginas completas ya tienes suficiente texto para parámetros más robustos
+model <- word2vec(
+  x         = x,
+  dim       = 100,       # 100 es razonable para un documento de 66 páginas
+  iter      = 30,        # suficiente para este tamaño
+  min_count = 2,         # palabras que aparecen al menos 2 veces en todo el doc
+  threads   = 4
+)
+
+# Guardar
+write.word2vec(model, "modelo_documento.bin")
+
+# Matriz de embeddings
+embedding <- as.matrix(model)
+
+# Verificar vocabulario resultante
+cat("Palabras en vocabulario:", nrow(embedding), "\n")
+
+
+# Ver qué palabras quedaron en el vocabulario
+vocab <- rownames(embedding)
+head(vocab, 40)  # revisa esto primero para elegir palabras relevantes
+
+# Buscar palabras cercanas con términos de TU documento
+lookslike <- predict(
+  model,
+  newdata = c("infidelidad", "matrimonio", "familia", "cónyuge"),  # reemplaza con términos reales
+  type    = "nearest",
+  top_n   = 5
+)
+
+lookslike
+
+
+# generar nombres de dimensiones manualmente
+var_names <- paste0("V", 1:ncol(embedding))  # genera "V1", "V2", ..., "V100"
+
+vectores_paginas <- map(texto, function(pagina) {
+  palabras <- unlist(strsplit(tolower(pagina), "\\W+"))
+  palabras <- palabras[nchar(palabras) > 0]
+  
+  vecs <- map(palabras, function(p) {
+    tryCatch(predict(model, p, type = "embedding"), error = function(e) NULL)
+  }) %>%
+    discard(is.null) %>%
+    discard(function(x) {
+      v <- as.numeric(x)                    # convertir matriz → vector numérico
+      any(is.na(v)) || sum(v) == 0          # descartar si tiene NA o es vector cero
+    }) %>%
+    map(as.numeric)                         # asegurar que cada elemento sea vector
+  
+  if (length(vecs) == 0) return(rep(0, 100))
+  
+  # Promedio de vectores = representación de la página
+  Reduce("+", vecs) / length(vecs)
+})
+
+encontrar_paginas <- function(consulta, n = 3) {
+  vec_consulta <- tryCatch(
+    predict(model, unlist(strsplit(tolower(consulta), "\\W+")), type = "embedding"),
+    error = function(e) NULL
+  )
+  if (is.null(vec_consulta)) {
+    message("Ninguna palabra de la consulta está en el vocabulario")
+    return(NULL)
+  }
+  vec_consulta <- colMeans(vec_consulta)
+  
+  similitudes <- map_dbl(vectores_paginas, ~coop::cosine(vec_consulta, .x))
+  top <- order(similitudes, decreasing = TRUE)[1:n]
+  
+  # Mostrar número de página y similitud
+  cat("Páginas más relevantes:\n")
+  for (i in seq_along(top)) {
+    cat(sprintf("  Página %d — similitud: %.3f\n", top[i], similitudes[top[i]]))
+  }
+  
+  return(invisible(texto[top]))
+}
+
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# Buscar las 3 páginas más relevantes para una consulta
+encontrar_paginas("infidelidad", n = 3)
+```
+
+#### Tópicos
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# Dividir cada página en frases
+frases <- map2_dfr(texto, seq_along(texto), function(pagina, num_pagina) {
+  fs <- unlist(strsplit(pagina, "(?<=[.!?])\\s+", perl = TRUE))
+  fs <- fs[nchar(trimws(fs)) > 20]  # descartar frases muy cortas
+  tibble(pagina = num_pagina, frase_id = seq_along(fs), texto = fs)
+})
+
+cat("Total de frases extraídas:", nrow(frases), "\n")
+
+
+# Tokenizar y eliminar stopwords en español
+#data("stop_words")  # stopwords en inglés — complementar con español abajo
+
+stopwords_es <- c("con", 
+                              "de", 
+                              "del", 
+                              "aquel", 
+                              "la", 
+                              "el", 
+                              "por", 
+                              "que", 
+                              "su", 
+                              "una", 
+                              "un",
+                              "y",
+                              "los", 
+                              "a",
+                              "se",
+                              "(",
+                              ")",
+                              ".",
+                              ",", 
+                              ";",
+                              ":",
+                              "/",
+                              "[",
+                              "]",
+                              "en",
+                              "lo",
+                              "es",
+                              "como",
+                              "no",
+                              "para",
+                              "las",
+                              "ella",
+                              "o",
+                              "sus",
+                              "-",
+                              "al",
+                              "año",
+                              "pero",
+                              "$",
+                              "dice",
+                              "también",
+                              "tiene",
+                              "ya",
+                              "don",
+                              "doña",
+                              "este",
+                              "le",
+                              "si",
+                              "solo",
+                              "desde",
+                              "césar",
+                              "quien",
+                              "señala",
+                              "sólo",
+                              "él",
+                              "ha",
+                              "fue",
+                              "más",
+                              "porque",
+                              "2020",
+                              "2",
+                              "4"
+                              )
+
+dtm <- frases %>%
+  unnest_tokens(palabra, texto) %>%
+  filter(!palabra %in% stopwords_es) %>%
+  filter(nchar(palabra) > 3) %>%          # descartar palabras muy cortas
+  count(frase_id, palabra) %>%
+  cast_dtm(frase_id, palabra, n)
+
+cat("Dimensiones DTM:", dim(dtm), "\n")  # frases x palabras
+
+
+# Probar distintos valores de k
+valores_k <- 2:10
+perplejidad <- map_dbl(valores_k, function(k) {
+  modelo <- LDA(dtm, k = k, method = "Gibbs",
+                control = list(seed = 42, iter = 500, burnin = 100))
+  perplexity(modelo, newdata = dtm)  # <-- agregar newdata = dtm
+})
+
+# Ver resultados
+resultados_k <- tibble(k = valores_k, perplejidad = perplejidad)
+print(resultados_k)
+
+
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# Graficar
+plot(valores_k, perplejidad, type = "b", pch = 19,
+     xlab = "Número de tópicos (k)",
+     ylab = "Perplejidad",
+     main = "Selección de k óptimo")
+
+# Graficar — busca el "codo" donde la perplejidad deja de bajar mucho
+plot(valores_k, perplejidad, type = "b", pch = 19,
+     xlab = "Número de tópicos (k)",
+     ylab = "Perplejidad",
+     main = "Selección de k óptimo")
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# Reemplaza k con el número que sugirió el gráfico
+k <- 5  # <-- ajusta según el gráfico
+
+modelo_lda <- LDA(
+  dtm,
+  k       = k,
+  method  = "Gibbs",
+  control = list(seed = 42, iter = 1000, burnin = 100)
+)
+
+
+# Top 10 palabras por tópico
+palabras_topicos <- tidy(modelo_lda, matrix = "beta") %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 10) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+# Imprimir
+palabras_topicos %>%
+  group_by(topic) %>%
+  summarise(palabras = paste(term, collapse = ", ")) %>%
+  print()
+
+
+# Tópico dominante por frase
+topicos_frases <- tidy(modelo_lda, matrix = "gamma") %>%
+  group_by(document) %>%
+  slice_max(gamma, n = 1) %>%
+  ungroup() %>%
+  mutate(frase_id = as.integer(document)) %>%
+  left_join(frases, by = "frase_id") %>%
+  select(pagina, frase_id, topico = topic, probabilidad = gamma, texto)
+
+# Tópico dominante por página
+topicos_paginas <- topicos_frases %>%
+  group_by(pagina, topico) %>%
+  summarise(n_frases = n(), .groups = "drop") %>%
+  group_by(pagina) %>%
+  slice_max(n_frases, n = 1) %>%
+  ungroup()
+
+print(topicos_paginas)
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# GRAFICO
+
+# Top 10 palabras por tópico ordenadas por probabilidad
+palabras_topicos %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(x = beta, y = term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free_y", labeller = label_both) +
+  scale_y_reordered() +
+  scale_fill_manual(values = rep("#9265A6", n_distinct(palabras_topicos$topic))) +
+  labs(
+    title = "Palabras más relevantes por tópico",
+    x     = "beta",
+    y     = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+```

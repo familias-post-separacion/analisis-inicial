@@ -111,6 +111,10 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#cónyuge-1" id="toc-cónyuge-1" class="nav-link" data-scroll-target="#cónyuge-1">Cónyuge</a></li>
   <li><a href="#infidelidad-1" id="toc-infidelidad-1" class="nav-link" data-scroll-target="#infidelidad-1">Infidelidad</a></li>
   </ul></li>
+  <li><a href="#b-embeddings" id="toc-b-embeddings" class="nav-link" data-scroll-target="#b-embeddings">b) Embeddings</a>
+  <ul>
+  <li><a href="#tópicos" id="toc-tópicos" class="nav-link" data-scroll-target="#tópicos">Tópicos</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -3554,6 +3558,141 @@ ul.task-list li input[type="checkbox"] {
 </table>
 
 
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="b-embeddings" class="level2">
+<h2 class="anchored" data-anchor-id="b-embeddings">b) Embeddings</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Palabras en vocabulario: 1677 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "118"            "143"            "150"            "16"            
+ [5] "169"            "1731"           "2015"           "357"           
+ [9] "4°"             "527"            "56"             "62"            
+[13] "84"             "absolución"     "achoclonada"    "acreditó"      
+[17] "actitud"        "actitudes"      "activos"        "actualizado"   
+[21] "actuar"         "adelante"       "adjuntos"       "administrativo"
+[25] "adquirido"      "adquirió"       "afc"            "afecta"        
+[29] "agregado"       "alejandra"      "alta"           "analizar"      
+[33] "aplicación"     "apoderado"      "aporte"         "archivo"       
+[37] "argumenta"      "arrendaban"     "aseo"           "asistía"       </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$infidelidad
+        term1         term2 similarity rank
+1 infidelidad        enteró  0.9041567    1
+2 infidelidad supuestamente  0.8939066    2
+3 infidelidad      cometida  0.8864068    3
+4 infidelidad         dicha  0.8804270    4
+5 infidelidad       terminó  0.8706962    5
+
+$matrimonio
+       term1   term2 similarity rank
+1 matrimonio nulidad  0.9165807    1
+2 matrimonio  código  0.8894747    2
+3 matrimonio    cesó  0.8834785    3
+4 matrimonio declare  0.8589646    4
+5 matrimonio haberse  0.8506294    5
+
+$familia
+    term1      term2 similarity rank
+1 familia transporte  0.9239433    1
+2 familia        tío  0.8868774    2
+3 familia   “persona  0.8729801    3
+4 familia   forestal  0.8592770    4
+5 familia      donde  0.8585076    5
+
+$cónyuge
+    term1        term2 similarity rank
+1 cónyuge       cuñada  0.8783025    1
+2 cónyuge     culpable  0.8698479    2
+3 cónyuge extramarital  0.8458979    3
+4 cónyuge      carrera  0.8371136    4
+5 cónyuge      hermano  0.8286876    5</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Páginas más relevantes:
+  Página 49 — similitud: 0.629
+  Página 50 — similitud: 0.515
+  Página 42 — similitud: 0.513</code></pre>
+</div>
+</div>
+<section id="tópicos" class="level4">
+<h4 class="anchored" data-anchor-id="tópicos">Tópicos</h4>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Total de frases extraídas: 639 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Dimensiones DTM: 17 3065 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 2
+      k perplejidad
+  &lt;int&gt;       &lt;dbl&gt;
+1     2       1375.
+2     3       1361.
+3     4       1347.
+4     5       1356.
+5     6       1359.
+6     7       1342.
+7     8       1352.
+8     9       1346.
+9    10       1352.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analisis_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+  topic palabras                                                                
+  &lt;int&gt; &lt;chr&gt;                                                                   
+1     1 cónyuge, familia, parte, sociedades, además, trabajar, padre, infidelid…
+2     2 matrimonio, años, relación, cuando, señora, partes, demandante, respect…
+3     3 matilde, hijos, hermano, empresa, económica, cuidado, partes, familiar,…
+4     4 casa, empresa, luego, matilde, reconvencional, cuenta, gastos, sociedad…
+5     5 sabe, divorcio, fecha, sobre, está, testigo, nunca, hijo, fabiola, regi…</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 78 × 3
+   pagina topico n_frases
+    &lt;int&gt;  &lt;int&gt;    &lt;int&gt;
+ 1      1      2        4
+ 2      2      2        4
+ 3      3      2        4
+ 4      4      2        5
+ 5      5      2        4
+ 6      6      2        5
+ 7      6      4        5
+ 8      7      2        4
+ 9      8      2        4
+10      9      2        4
+# ℹ 68 more rows</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analisis_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
 </div>
