@@ -1,0 +1,834 @@
+---
+title: "Análisis de prueba"
+author: "Fondecyt Familias"
+fontsize: 12pt
+#bibliography: "../input/mini-proyecto.bib"
+#csl: "input/bib/apa6.csl"
+format:
+  html:
+    toc: true
+    toc-location: right
+    toc-depth: 6
+    toc-expand: 6
+    toc-title: Contenidos
+    number-sections: false
+    number-depth: 6
+    theme: 
+    - cosmo
+    title-block-banner: true
+    title-block-banner-color: "#9265A6"
+editor: visual
+lang: es
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+#install.packages("pdftools")
+pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats, quanteda.textplots, dplyr, ggplot2, reticulate, purrr, knitr, kableExra, tidytext, topicmodels, tidyr)
+texto <- pdf_text("../input/sentencia.pdf") 
+texto <- str_to_lower(texto)
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+corpus_sentecia <- corpus(unlist(texto))
+toks_sentencia <-  corpus_sentecia %>% 
+  tokens()
+
+
+# generamos un objeto que contenga las stopwords
+stopwords_personalizadas <- c("con", 
+                              "de", 
+                              "del", 
+                              "aquel", 
+                              "la", 
+                              "el", 
+                              "por", 
+                              "que", 
+                              "su", 
+                              "una", 
+                              "un",
+                              "y",
+                              "los", 
+                              "a",
+                              "se",
+                              "(",
+                              ")",
+                              ".",
+                              ",", 
+                              ";",
+                              ":",
+                              "/",
+                              "[",
+                              "]",
+                              "en",
+                              "lo",
+                              "es",
+                              "como",
+                              "no",
+                              "para",
+                              "las",
+                              "ella",
+                              "o",
+                              "sus",
+                              "-",
+                              "al",
+                              "año",
+                              "pero",
+                              "$",
+                              "dice",
+                              "también",
+                              "tiene",
+                              "ya",
+                              "don",
+                              "doña",
+                              "este",
+                              "le",
+                              "si",
+                              "solo",
+                              "desde",
+                              "césar",
+                              "quien",
+                              "señala",
+                              "sólo",
+                              "él",
+                              "ha",
+                              "fue",
+                              "más",
+                              "porque",
+                              "2020",
+                              "2",
+                              "4"
+                              )
+
+# matriz DFM 
+
+# generamos matriz DFM para los tokens de las canciones de 1960
+dfm_sentencia <- toks_sentencia %>%
+  tokens_select(pattern = stopwords_personalizadas, selection = "remove") %>% # remover stopwords
+  dfm()  
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# generamos funcion "objeto_palabra"
+objeto_palabra <- function(dfm_obj) {
+  
+  # calculamos las 20 palabras más frecuenctes
+  palabras <- dfm_obj %>% 
+    quanteda::topfeatures(n = 20)
+  
+  # convertimos en un data frame que contenga las palabras y su frecuencia
+  resultado <- data.frame(palabra = names(palabras), #generamos variable palabra
+                          freq = as.numeric(palabras))# generamos variable freq
+
+    # retornamos el resultado
+    return(resultado)
+}
+
+# almacenamos el data frame en un objeto para 1960
+psentencia <- objeto_palabra(dfm_sentencia)
+
+
+```
+
+
+# I. Análisis léxico-estadístico
+
+
+## a) Palabras más repetidas
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# generamos grafico para las 20 palabras más frecuentes en las canciones de 1960
+ggplot(psentencia,aes(x=palabra,y=freq))+
+  geom_bar(stat = "identity", 
+           color="#9265A6", 
+           fill = "#9265A6") +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(title = "Frecuencias 20 palabras más repetidas en la sentencia", 
+      x = "Palabras", 
+      y = "Frecuencia",
+      caption = "Fuente: Elaboración propia.")  +
+  theme_bw()  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 12,
+                                  face = "italic", 
+                                  color = "black", 
+                                  hjust = 0.5),
+        plot.margin = margin(t = 20, r = 20, b = 20, l = 20)) +
+  geom_text(aes(label = paste0(round(freq, 1))), 
+            stat = "identity", 
+            vjust = -0.5, 
+            color = "black",
+            position = position_dodge(width=0.9), 
+            size = 4)
+```
+
+
+
+
+## b) Oraciones de palabras claves
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# se almacena en el objeto keywords las palabras que nos interesen
+keywords <- c("casa","cónyuge", "familia", "familiar", "hijos", "matrimonio", "reconvencional", "relación","intimidad", "infidelidad")
+
+# inicializamos la lista para 1960
+contexto_sentencia <- list()
+
+
+# iteramos el cálculo de las 7 palabras anteriores y las 7 palabras posteriores a cada tópico de 1960
+for (i in keywords) {
+  contexto_sentencia[[i]] <- toks_sentencia %>% kwic(pattern = i, window = 12)
+}
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+generar_tabla <- function(contexto_sentencia_list, i) { 
+  
+  # extraimos el tópico correspondiente 
+  letra <- contexto_sentencia_list[[i]] 
+  
+  # se convierte en data frame y se seleccionan las tres columnas a visualizar en la tabla
+  letra <- as.data.frame(letra) %>% select(pre, keyword, post)
+  
+  # creamos objeto tabla con su formato personalizado 
+ tabla <- letra %>% 
+  knitr::kable(
+    format = "html",
+    align = "c",
+    col.names = c("Oración anterior", "Palabra", "Oración posterior")
+  ) %>%
+  kableExtra::kable_styling(
+    bootstrap_options = "basic",
+    full_width = FALSE,
+    position = "center",
+    font_size = 12
+  ) %>%
+  # Encabezado en negrita, sin color de fondo
+  kableExtra::row_spec(
+    0,
+    bold = TRUE,
+    background = "white",
+    extra_css = "border-top: 2px solid black; border-bottom: 1px solid black;"
+  ) %>%
+  # Filas del cuerpo sin fondo alternado
+  kableExtra::column_spec(1, background = "white") %>%
+  kableExtra::column_spec(2, background = "white", bold = FALSE) %>%
+  kableExtra::column_spec(3, background = "white") %>%
+  # Línea inferior de la tabla
+  kableExtra::row_spec(
+    nrow(letra),
+    extra_css = "border-bottom: 2px solid black;"
+  )
+  
+  
+  # retorna la tabla 
+  return(tabla)
+}
+
+
+```
+
+
+### Casa
+
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "casa")
+```
+
+
+### Cónyuge
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "cónyuge")
+```
+
+
+### Familia
+
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "familia")
+```
+
+
+### Familiar
+
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "familiar")
+```
+
+
+### Hijos
+
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "hijos")
+```
+
+
+### Matrimonio
+
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "matrimonio")
+```
+
+
+
+### Relación 
+
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "relación")
+```
+
+
+### Infidelidad 
+
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "infidelidad")
+```
+
+
+
+### Intimidad
+
+```{r}
+#| warning: false
+#| echo: false
+generar_tabla(contexto_sentencia, "intimidad")
+```
+
+
+
+# II. Análisis sintáctico-semántico
+
+## a) Análisis de sentimientos 
+
+
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+install.packages("reticulate")
+library(reticulate)
+# Reinicia R primero (Ctrl + Shift + F10 en RStudio)
+
+#reticulate::use_python(
+ # "C:/Users/LENOVO/AppData/Local/Programs/Python/Python311/python.exe",
+  #required = TRUE)
+
+
+#reticulate::virtualenv_create(
+ # envname = "r-transformers-311",
+#  python  = "C:/Users/LENOVO/AppData/Local/Programs/Python/Python311/python.exe")
+
+#reticulate::use_virtualenv("r-transformers-311", required = TRUE)
+
+#reticulate::py_install(
+ # packages = c("transformers", "sentencepiece"),
+#  envname  = "r-transformers-311",
+ # pip      = TRUE)
+
+
+
+#reticulate::py_run_string("import torch")
+
+#reticulate::py_run_string("import torch; print(torch.__version__)")
+
+# Crear entorno conda con Python 3.11
+reticulate::conda_create(
+  envname  = "r-torch",
+  packages = "python=3.11",
+  conda    = "C:/Users/LENOVO/miniconda3/Scripts/conda.exe"
+)
+
+
+reticulate::use_condaenv(
+  condaenv = "C:/Users/LENOVO/miniconda3/envs/r-torch",
+  required = TRUE
+)
+
+reticulate::conda_install(
+  envname  = "r-torch",
+  packages = c("pytorch==2.4.0", "cpuonly"),
+  channel  = "pytorch",
+  conda    = "C:/Users/LENOVO/miniconda3/Scripts/conda.exe"
+)
+
+reticulate::conda_install(
+  envname  = "r-torch",
+  packages = c("transformers==4.40.0", "sentencepiece"),
+  pip      = TRUE,
+  conda    = "C:/Users/LENOVO/miniconda3/Scripts/conda.exe"
+)
+
+#reticulate::py_run_string("import torch; print(torch.__version__)")
+
+transformers <- reticulate::import("transformers")
+
+classifier <- transformers$pipeline(
+  task  = "text-classification",
+  model = "pysentimiento/robertuito-sentiment-analysis"
+)
+
+
+# quaneda
+
+menciones_conyuge <- toks_sentencia %>% 
+  kwic( pattern = "cónyuge",  window = 12)  
+
+# Armar dataframe con los primeros 10 extractos
+data <- data.frame(pre  = menciones_conyuge$pre, post = menciones_conyuge$post ) %>% 
+  slice(1:67) %>% 
+  mutate(text = paste(pre, post)) %>% 
+  select(text)
+
+# Predecir sentimiento para cada uno de los textos
+out <-  map(data$text, classifier)
+
+# Extraer la etiqueta de cada predicción
+labels <- flatten(out) %>%
+  map_chr(1)
+
+# Extraer probabilidad de cada predicción
+prob <- flatten(out) %>%
+  map_dbl(2)
+
+# Añadir columnas a data frame
+data <- data %>% 
+  mutate(sentiment = labels,
+         prob = prob)
+```
+
+### Cónyuge
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+data %>% 
+  kableExtra::kbl() %>% 
+  kableExtra::kable_styling(font_size = 20)
+  
+```
+
+
+### Infidelidad 
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# quaneda
+
+menciones_infidelidad <- toks_sentencia %>% 
+  kwic( pattern = "infidelidad",  window = 12)  
+
+# Armar dataframe con los primeros 10 extractos
+data1 <- data.frame(pre  = menciones_infidelidad$pre, post = menciones_infidelidad$post ) %>% 
+  slice(1:48) %>% 
+  mutate(text = paste(pre, post)) %>% 
+  select(text)
+
+# Predecir sentimiento para cada uno de los textos
+out1 <-  map(data1$text, classifier)
+
+# Extraer la etiqueta de cada predicción
+labels1 <- flatten(out1) %>%
+  map_chr(1)
+
+# Extraer probabilidad de cada predicción
+prob1 <- flatten(out1) %>%
+  map_dbl(2)
+
+# Añadir columnas a data frame
+data1 <- data1 %>% 
+  mutate(sentiment = labels1,
+         prob = prob1) 
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+data1 %>% 
+  kableExtra::kbl() %>% 
+  kableExtra::kable_styling(font_size = 20)
+```
+
+
+
+## b) Embeddings
+
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(word2vec)
+
+# ENTRENAR MÓDELO -----------------
+
+x <- texto  # cada elemento = texto completo de una página
+
+# Con páginas completas ya tienes suficiente texto para parámetros más robustos
+model <- word2vec(
+  x         = x,
+  dim       = 100,       # 100 es razonable para un documento de 66 páginas
+  iter      = 30,        # suficiente para este tamaño
+  min_count = 2,         # palabras que aparecen al menos 2 veces en todo el doc
+  threads   = 4
+)
+
+# Guardar
+write.word2vec(model, "modelo_documento.bin")
+
+# Matriz de embeddings
+embedding <- as.matrix(model)
+
+# Verificar vocabulario resultante
+cat("Palabras en vocabulario:", nrow(embedding), "\n")
+
+
+# Ver qué palabras quedaron en el vocabulario
+vocab <- rownames(embedding)
+head(vocab, 40)  # revisa esto primero para elegir palabras relevantes
+
+# Buscar palabras cercanas con términos de TU documento
+lookslike <- predict(
+  model,
+  newdata = c("infidelidad", "matrimonio", "familia", "cónyuge"),  # reemplaza con términos reales
+  type    = "nearest",
+  top_n   = 5
+)
+
+lookslike
+
+
+# generar nombres de dimensiones manualmente
+var_names <- paste0("V", 1:ncol(embedding))  # genera "V1", "V2", ..., "V100"
+
+vectores_paginas <- map(texto, function(pagina) {
+  palabras <- unlist(strsplit(tolower(pagina), "\\W+"))
+  palabras <- palabras[nchar(palabras) > 0]
+  
+  vecs <- map(palabras, function(p) {
+    tryCatch(predict(model, p, type = "embedding"), error = function(e) NULL)
+  }) %>%
+    discard(is.null) %>%
+    discard(function(x) {
+      v <- as.numeric(x)                    # convertir matriz → vector numérico
+      any(is.na(v)) || sum(v) == 0          # descartar si tiene NA o es vector cero
+    }) %>%
+    map(as.numeric)                         # asegurar que cada elemento sea vector
+  
+  if (length(vecs) == 0) return(rep(0, 100))
+  
+  # Promedio de vectores = representación de la página
+  Reduce("+", vecs) / length(vecs)
+})
+
+encontrar_paginas <- function(consulta, n = 3) {
+  vec_consulta <- tryCatch(
+    predict(model, unlist(strsplit(tolower(consulta), "\\W+")), type = "embedding"),
+    error = function(e) NULL
+  )
+  if (is.null(vec_consulta)) {
+    message("Ninguna palabra de la consulta está en el vocabulario")
+    return(NULL)
+  }
+  vec_consulta <- colMeans(vec_consulta)
+  
+  similitudes <- map_dbl(vectores_paginas, ~coop::cosine(vec_consulta, .x))
+  top <- order(similitudes, decreasing = TRUE)[1:n]
+  
+  # Mostrar número de página y similitud
+  cat("Páginas más relevantes:\n")
+  for (i in seq_along(top)) {
+    cat(sprintf("  Página %d — similitud: %.3f\n", top[i], similitudes[top[i]]))
+  }
+  
+  return(invisible(texto[top]))
+}
+
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# Buscar las 3 páginas más relevantes para una consulta
+encontrar_paginas("infidelidad", n = 3)
+```
+
+
+#### Tópicos
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# Dividir cada página en frases
+frases <- map2_dfr(texto, seq_along(texto), function(pagina, num_pagina) {
+  fs <- unlist(strsplit(pagina, "(?<=[.!?])\\s+", perl = TRUE))
+  fs <- fs[nchar(trimws(fs)) > 20]  # descartar frases muy cortas
+  tibble(pagina = num_pagina, frase_id = seq_along(fs), texto = fs)
+})
+
+cat("Total de frases extraídas:", nrow(frases), "\n")
+
+
+# Tokenizar y eliminar stopwords en español
+#data("stop_words")  # stopwords en inglés — complementar con español abajo
+
+stopwords_es <- c("con", 
+                              "de", 
+                              "del", 
+                              "aquel", 
+                              "la", 
+                              "el", 
+                              "por", 
+                              "que", 
+                              "su", 
+                              "una", 
+                              "un",
+                              "y",
+                              "los", 
+                              "a",
+                              "se",
+                              "(",
+                              ")",
+                              ".",
+                              ",", 
+                              ";",
+                              ":",
+                              "/",
+                              "[",
+                              "]",
+                              "en",
+                              "lo",
+                              "es",
+                              "como",
+                              "no",
+                              "para",
+                              "las",
+                              "ella",
+                              "o",
+                              "sus",
+                              "-",
+                              "al",
+                              "año",
+                              "pero",
+                              "$",
+                              "dice",
+                              "también",
+                              "tiene",
+                              "ya",
+                              "don",
+                              "doña",
+                              "este",
+                              "le",
+                              "si",
+                              "solo",
+                              "desde",
+                              "césar",
+                              "quien",
+                              "señala",
+                              "sólo",
+                              "él",
+                              "ha",
+                              "fue",
+                              "más",
+                              "porque",
+                              "2020",
+                              "2",
+                              "4"
+                              )
+
+dtm <- frases %>%
+  unnest_tokens(palabra, texto) %>%
+  filter(!palabra %in% stopwords_es) %>%
+  filter(nchar(palabra) > 3) %>%          # descartar palabras muy cortas
+  count(frase_id, palabra) %>%
+  cast_dtm(frase_id, palabra, n)
+
+cat("Dimensiones DTM:", dim(dtm), "\n")  # frases x palabras
+
+
+# Probar distintos valores de k
+valores_k <- 2:10
+perplejidad <- map_dbl(valores_k, function(k) {
+  modelo <- LDA(dtm, k = k, method = "Gibbs",
+                control = list(seed = 42, iter = 500, burnin = 100))
+  perplexity(modelo, newdata = dtm)  # <-- agregar newdata = dtm
+})
+
+# Ver resultados
+resultados_k <- tibble(k = valores_k, perplejidad = perplejidad)
+print(resultados_k)
+
+
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# Graficar
+plot(valores_k, perplejidad, type = "b", pch = 19,
+     xlab = "Número de tópicos (k)",
+     ylab = "Perplejidad",
+     main = "Selección de k óptimo")
+
+# Graficar — busca el "codo" donde la perplejidad deja de bajar mucho
+plot(valores_k, perplejidad, type = "b", pch = 19,
+     xlab = "Número de tópicos (k)",
+     ylab = "Perplejidad",
+     main = "Selección de k óptimo")
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# Reemplaza k con el número que sugirió el gráfico
+k <- 5  # <-- ajusta según el gráfico
+
+modelo_lda <- LDA(
+  dtm,
+  k       = k,
+  method  = "Gibbs",
+  control = list(seed = 42, iter = 1000, burnin = 100)
+)
+
+
+# Top 10 palabras por tópico
+palabras_topicos <- tidy(modelo_lda, matrix = "beta") %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 10) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+# Imprimir
+palabras_topicos %>%
+  group_by(topic) %>%
+  summarise(palabras = paste(term, collapse = ", ")) %>%
+  print()
+
+
+# Tópico dominante por frase
+topicos_frases <- tidy(modelo_lda, matrix = "gamma") %>%
+  group_by(document) %>%
+  slice_max(gamma, n = 1) %>%
+  ungroup() %>%
+  mutate(frase_id = as.integer(document)) %>%
+  left_join(frases, by = "frase_id") %>%
+  select(pagina, frase_id, topico = topic, probabilidad = gamma, texto)
+
+# Tópico dominante por página
+topicos_paginas <- topicos_frases %>%
+  group_by(pagina, topico) %>%
+  summarise(n_frases = n(), .groups = "drop") %>%
+  group_by(pagina) %>%
+  slice_max(n_frases, n = 1) %>%
+  ungroup()
+
+print(topicos_paginas)
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# GRAFICO
+
+# Top 10 palabras por tópico ordenadas por probabilidad
+palabras_topicos %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(x = beta, y = term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free_y", labeller = label_both) +
+  scale_y_reordered() +
+  scale_fill_manual(values = rep("#9265A6", n_distinct(palabras_topicos$topic))) +
+  labs(
+    title = "Palabras más relevantes por tópico",
+    x     = "beta",
+    y     = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    strip.text       = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+```
+

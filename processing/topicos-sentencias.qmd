@@ -1,5 +1,5 @@
 ---
-title: "Análisis de tópicos sentencias divorcio por culpa"
+title: "Análisis de tópicos: sentencias en materia de DIVORCIO POR CULPA"
 author: "Fondecyt Familias"
 fontsize: 12pt
 #bibliography: "../input/mini-proyecto.bib"
@@ -21,9 +21,22 @@ editor: visual
 lang: es
 ---
 
+### Presentación 
+
+El análisis de tópicos nos permite realizar una **primera selección y mapeo del corpus de sentencias**. En este documento se presentan dos formas para realizar un análisis de tópicos: (I) *inductivo mediante el uso LDA*, (II) *deductivo mediante el uso de KeyATM*. 
+
+- El primer tipo, nos permite estimar la **cantidad de tópicos óptima que el corpus ofrece**, permitiendonos *explorar* desde los datos mismos. 
+
+- El segundo tipo, nos permite estimar la **cantidad de documentos que pueden vincularse a los tópicos teóricamente propuestos**. 
+
+Ambos nos permiten ver la *probabilidad* de que los documentos se relacionen con cada tópico. 
+
+
+En una primera instancia, este análisis de tópicos nos permite explorar el corpus, pero al mismo tiempo realizar una **primera selección de documentos a partir de mayor probabilidad de representar el tópico**. 
+
 
 ```{r}
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats,
@@ -31,163 +44,96 @@ pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats,
                purrr, knitr, kableExra, tidytext, topicmodels,
                tidyr)
 
-
+# cargamos los datos
 load("../input/sentencias_divorcio_culpa.Rdata")
 
-
+# seleccionamos y renombramos columna text
 sentencias <- sentencias_culpa %>% select(id, tribunal, fecha, text = texto)
 
-
+# generamos corpus 
 corpus_sentencia <- corpus(sentencias)
 toks_sentencia <-  corpus_sentencia %>% 
   tokens()
 
+# pasamos todo el texto a minúsculas:
 corpus_sentencia <- str_to_lower(corpus_sentencia)
 ```
 
+### Datos
 
-#### Tópicos
+Se presentan **887 sentencias**
+
+- responden a la materia "*DIVORCIO POR CULPA*" 
+- emtre los años **2023** y **2024**. 
 
 
-##### INDUCTIVO
+### Análisis de tópicos
+
+
+#### I. INDUCTIVO
+
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
 
+stopwords_es <- c("con", "de", "del", "aquel", "la", "el", "por", "que", "su", 
+                  "una", "un", "y", "los", "a", "se", "(", ")", ".", ",", ";", 
+                  ":", "/", "[", "]", "en", "lo", "es", "como", "no", "para", 
+                  "las", "ella", "o", "sus", "-", "al", "año", "pero", "$", 
+                  "dice", "también", "tiene", "ya", "don", "doña", "este", "le", 
+                  "si", "solo", "desde", "césar", "quien", "señala", "sólo", 
+                  "él", "ha", "fue", "más", "porque", "2020", "2", "4",
+                  "<", ">", "<br>", "°", "acta", "br", "direccion000", 
+                  "direccion001", "fecha", "hora", "n", "num000", "num001", "rit")
 
-# Dividir cada página en frases
-frases <- map2_dfr(corpus_sentencia, seq_along(corpus_sentencia), function(pagina, num_pagina) {
-  fs <- unlist(strsplit(pagina, "(?<=[.!?])\\s+", perl = TRUE))
-  fs <- fs[nchar(trimws(fs)) > 20]  # descartar frases muy cortas
-  tibble(pagina = num_pagina, frase_id = seq_along(fs), texto = fs)
-})
+# Crear tibble directamente desde el corpus (un documento por fila)
+docs_df <- tibble(
+  doc_id = seq_along(corpus_sentencia),   # ID único por documento
+  texto  = as.character(corpus_sentencia)                # texto completo de cada documento
+)
 
-cat("Total de frases extraídas:", nrow(frases), "\n")
-
-# Tokenizar y eliminar stopwords en español
-#data("stop_words")  # stopwords en inglés — complementar con español abajo
-
-stopwords_es <- c("con", 
-                              "de", 
-                              "del", 
-                              "aquel", 
-                              "la", 
-                              "el", 
-                              "por", 
-                              "que", 
-                              "su", 
-                              "una", 
-                              "un",
-                              "y",
-                              "los", 
-                              "a",
-                              "se",
-                              "(",
-                              ")",
-                              ".",
-                              ",", 
-                              ";",
-                              ":",
-                              "/",
-                              "[",
-                              "]",
-                              "en",
-                              "lo",
-                              "es",
-                              "como",
-                              "no",
-                              "para",
-                              "las",
-                              "ella",
-                              "o",
-                              "sus",
-                              "-",
-                              "al",
-                              "año",
-                              "pero",
-                              "$",
-                              "dice",
-                              "también",
-                              "tiene",
-                              "ya",
-                              "don",
-                              "doña",
-                              "este",
-                              "le",
-                              "si",
-                              "solo",
-                              "desde",
-                              "césar",
-                              "quien",
-                              "señala",
-                              "sólo",
-                              "él",
-                              "ha",
-                              "fue",
-                              "más",
-                              "porque",
-                              "2020",
-                              "2",
-                              "4",
-                  "<",">", "<br>", "°", "acta", "br", "direccion000", "direccion001", 
-                  "fecha", "hora", "n", "num000", "num001", "rit")
-
-
-
-dtm <- frases %>%
+# Tokenizar y construir DTM por documento
+dtm <- docs_df %>%
   unnest_tokens(palabra, texto) %>%
   filter(!palabra %in% stopwords_es) %>%
-  filter(nchar(palabra) > 3) %>%          # descartar palabras muy cortas
-  count(frase_id, palabra) %>%
-  cast_dtm(frase_id, palabra, n)
-
-cat("Dimensiones DTM:", dim(dtm), "\n")  # frases x palabras
-
+  filter(nchar(palabra) > 3) %>%
+  count(doc_id, palabra) %>%
+  cast_dtm(doc_id, palabra, n)
 
 # Probar distintos valores de k
-valores_k <- 2:10
+valores_k <- 2:20
 perplejidad <- map_dbl(valores_k, function(k) {
   modelo <- LDA(dtm, k = k, method = "Gibbs",
                 control = list(seed = 42, iter = 500, burnin = 100))
-  perplexity(modelo, newdata = dtm)  # <-- agregar newdata = dtm
+  perplexity(modelo, newdata = dtm)
 })
 
-# Ver resultados
 resultados_k <- tibble(k = valores_k, perplejidad = perplejidad)
-print(resultados_k)
-
-
-
 ```
 
+ **Análisis de perplejidad (k óptimo)**
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
 
-
-# Graficar
-plot(valores_k, perplejidad, type = "b", pch = 19,
-     xlab = "Número de tópicos (k)",
-     ylab = "Perplejidad",
-     main = "Selección de k óptimo")
-
-# Graficar — busca el "codo" donde la perplejidad deja de bajar mucho
 plot(valores_k, perplejidad, type = "b", pch = 19,
      xlab = "Número de tópicos (k)",
      ylab = "Perplejidad",
      main = "Selección de k óptimo")
 ```
 
+
+El análisis de perplejidad nos indica que el **número óptimo de tópicos es 16**.  
+
+
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
 
-
-# Reemplaza k con el número que sugirió el gráfico
-k <- 10  # <-- ajusta según el gráfico
+k <- 16 
 
 modelo_lda <- LDA(
   dtm,
@@ -196,11 +142,19 @@ modelo_lda <- LDA(
   control = list(seed = 42, iter = 1000, burnin = 100)
 )
 
+```
+
+
+ **Palabras por tópico**
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
 
 # Top 10 palabras por tópico
 palabras_topicos <- tidy(modelo_lda, matrix = "beta") %>%
   group_by(topic) %>%
-  slice_max(beta, n = 10) %>%
+  slice_max(beta, n = 20) %>%
   ungroup() %>%
   arrange(topic, -beta)
 
@@ -210,27 +164,10 @@ palabras_topicos %>%
   summarise(palabras = paste(term, collapse = ", ")) %>%
   print()
 
-
-# Tópico dominante por frase
-topicos_frases <- tidy(modelo_lda, matrix = "gamma") %>%
-  group_by(document) %>%
-  slice_max(gamma, n = 1) %>%
-  ungroup() %>%
-  mutate(frase_id = as.integer(document)) %>%
-  left_join(frases, by = "frase_id") %>%
-  select(pagina, frase_id, topico = topic, probabilidad = gamma, texto)
-
-# Tópico dominante por página
-topicos_paginas <- topicos_frases %>%
-  group_by(pagina, topico) %>%
-  summarise(n_frases = n(), .groups = "drop") %>%
-  group_by(pagina) %>%
-  slice_max(n_frases, n = 1) %>%
-  ungroup()
-
-print(topicos_paginas)
-
 ```
+Se indica que agrupe las 20 palabras con mayor probabilidad de ser parte del tópico. 
+
+
 
 ```{r}
 #| echo: false
@@ -240,69 +177,109 @@ print(topicos_paginas)
 
 # GRAFICO
 
-# Top 10 palabras por tópico ordenadas por probabilidad
-palabras_topicos %>%
-  mutate(term = reorder_within(term, beta, topic)) %>%
-  ggplot(aes(x = beta, y = term, fill = factor(topic))) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~ topic, scales = "free_y", labeller = label_both) +
-  scale_y_reordered() +
-  scale_fill_manual(values = rep("#9265A6", n_distinct(palabras_topicos$topic))) +
-  labs(
-    title = "Palabras más relevantes por tópico",
-    x     = "beta",
-    y     = NULL
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    strip.text       = element_text(face = "bold"),
-    panel.grid.minor = element_blank()
-  )
+# Función para graficar un subconjunto de tópicos
+grafico_topicos <- function(datos, topicos) {
+  datos %>%
+    filter(topic %in% topicos) %>%
+    mutate(term = reorder_within(term, beta, topic)) %>%
+    ggplot(aes(x = beta, y = term, fill = factor(topic))) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~ topic, scales = "free_y", labeller = label_both) +
+    scale_y_reordered() +
+    scale_fill_manual(values = rep("#9265A6", length(topicos))) +
+    labs(
+      title = paste("Tópicos", min(topicos), "al", max(topicos)),
+      x     = "beta",
+      y     = NULL
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      strip.text       = element_text(face = "bold"),
+      panel.grid.minor = element_blank()
+    )
+}
+
+# Generar los 4 gráficos
+g1 <- grafico_topicos(palabras_topicos, 1:4)
+g2 <- grafico_topicos(palabras_topicos, 5:8)
+g3 <- grafico_topicos(palabras_topicos, 9:12)
+g4 <- grafico_topicos(palabras_topicos, 13:16)
+
+# Mostrarlos individualmente
+g1
+g2
+g3
+g4
 
 ```
 
-##### DEDUCTIVO
 
 
-**Modelo KeyATM**
+
+#### II. DEDUCTIVO
+
+
+**Modelo KeyATM (Keyword Assisted Topic Models)**
 
 - permite proponer palabras semilla (seed words) por tópico, que se utilizan como anclas semánticas
 - bayesiano y con probabilidades interpretables
 - en su output nos entrega un objeto data.frame que indica la probabilidad de cada documento al tópico (esto implica disntiguir bien los elementos cuando realizamos el corpus)
 
-0. Cargar librerías:
 
 ```{r}
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 pacman::p_load(keyATM, quanteda)
 ```
 
-1. Generar onjeto DFM con quanteda: 
+
 ```{r}
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
-# Construir DFM (quanteda) desde tu corpus
-dfm_corpus <- dfm(tokens(corpus_sentencia,
-                         remove_punct = TRUE,
-                         remove_numbers = TRUE)) %>%
-  dfm_remove(stopwords("es")) %>%
-  dfm_trim(min_termfreq = 5)
+
+
+#1. **Vectorizar el texto mediante un objeto DFM**
+# En este primer paso, vamos a representar el texto en un vector de números. Para ello, generamos una matriz DFM.
+# Tokenizar
+toks <- tokens(corpus_sentencia,
+  remove_punct    = TRUE,
+  remove_numbers  = TRUE,
+  remove_symbols  = TRUE
+)
+
+#  stopwords 
+toks <- tokens_remove(toks, pattern = c(
+  stopwords("es"),     # stopwords en español de quanteda
+  # stopwords personalizadas:
+  "acta", "br", "direccion000", "direccion001",
+  "fecha", "hora", "num000", "num001", "rit",
+  "señala", "don", "doña", "dice", "<", ">"
+))
+
+
+# Construir DFM 
+
+dfm_corpus <- dfm(toks) %>%
+  dfm_remove(pattern = c(stopwords("es"))) %>%  # doble verificación
+  dfm_trim(min_termfreq = 5, min_docfreq = 2)   # eliminar términos raros
+
 ```
 
 
-2. Generar formato keyATM con objeto DFM: 
+
 ```{r}
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
-# Formato keyATM
+# 2.**Generar formato keyATM con objeto DFM**
 keyatm_docs <- keyATM_read(texts = dfm_corpus)
 ```
 
-3. Identfiicar los tópicos y sus palabras semilla
+ **Identfiicar los tópicos y sus palabras semilla**
+
+En este paso es importante tener claridad de los tópicos que nos gustaría probar que permitan capturar correctamente la *"gramática moral*" y la relación con los *ideales democráticos (igualdad y autonomía personal)* en la vida familiar.
 ```{r}
 #| echo: true
 #| warning: false
@@ -316,16 +293,16 @@ palabras_clave <- list(
 )
 ```
 
-4. Generar modelo: 
+
 ```{r}
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 # Modelo deductivo
 modelo_keyatm <- keyATM(
   docs       = keyatm_docs,
-  model      = "base",          # <-- era rec_model
-  no_keyword_topics = 3,        # <-- era number_of_topics (tópicos sin palabras clave)
+  model      = "base",          
+  no_keyword_topics = 3,        
   keywords   = palabras_clave,
   options    = list(seed = 42, iterations = 1500)
 )
@@ -333,7 +310,7 @@ modelo_keyatm <- keyATM(
 ```
 
 
-5. Definir el número de palabras por tópico: 
+**Definir el número de palabras por tópico**
 
 ```{r}
 #| echo: true
@@ -344,25 +321,71 @@ top_words(modelo_keyatm, n = 15)
 ```
 
 
-6. Generamos el objeto final que ordena los documentos por tópico y su probabilidad asociada: 
+
 
 ```{r}
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
-# Tópico dominante por documento
+#  **Generamos el objeto final que ordena los documentos por tópico y su probabilidad asociada**
 doc_topicos <- as.data.frame(modelo_keyatm$theta) %>%  # theta = prob doc~tópico
-  mutate(frase_id = row_number()) %>%
-  pivot_longer(-frase_id, names_to = "topico", values_to = "probabilidad") %>%
-  group_by(frase_id) %>%
+  mutate(doc_id = row_number()) %>%
+  pivot_longer(-doc_id, names_to = "topico", values_to = "probabilidad") %>%
+  group_by(doc_id) %>%
   slice_max(probabilidad, n = 1) %>%
   ungroup() %>%
-  left_join(frases, by = "frase_id")
+  left_join(docs_df, by = "doc_id")
 ```
 
 
-El data.frame doc_topicos nos permite cuantificar a nivel general de lso documentos, a cual tributan más cada uno a los tópicos propuestos. Indicando la probabilidad. Con ello podemos ver cuales tienen mayor afinidad (o mayor probabilidad) con el tópico y seleccionar un primer corpus reducido. 
+El data.frame doc_topicos nos permite cuantificar, a un nivel general de los documentos, a cual tributan más cada uno en los tópicos propuestos, indicando su probabilidad. Con ello, podemos ver cuáles tienen mayor afinidad (o mayor probabilidad) con el tópico y seleccionar un primer corpus reducido. 
 
-Luego, pasar a un analisis más especifico. 
+```{r}
+sjmisc::frq(doc_topicos$topico)
+```
 
-IMPORTANTE: mejorar las categorias del modelo ATM
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+top1 <- doc_topicos %>% filter(topico == "1_igualdad_carga_domestica")
+
+top1 <- top1 %>% filter(probabilidad >=  0.9) #36 filas 
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+top2 <- doc_topicos %>% filter(topico == "2_igualdad_parentalidad") # 40
+
+#top2 <- top2 %>% filter(probabilidad >=  0.9) #36 filas 
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+top3 <- doc_topicos %>% filter(topico == "3_autonomia_personal_restringida")
+
+#top1 <- top1 %>% filter(probabilidad >=  0.9) #36 filas 
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+top4 <- doc_topicos %>% filter(topico == "4_derecho_proyecto_propio")
+
+top4 <- top4 %>% filter(probabilidad >=  0.9) #29 filas 
+
+```
+
+
+IMPORTANTE: mejorar las categorias del modelo keyATM
