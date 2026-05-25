@@ -122,7 +122,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#datos" id="toc-datos" class="nav-link" data-scroll-target="#datos">Datos</a></li>
   <li><a href="#análisis-de-tópicos" id="toc-análisis-de-tópicos" class="nav-link" data-scroll-target="#análisis-de-tópicos">Análisis de tópicos</a>
   <ul>
-  <li><a href="#i.-inductivo" id="toc-i.-inductivo" class="nav-link" data-scroll-target="#i.-inductivo">I. INDUCTIVO</a></li>
+  <li><a href="#i.-inductivo" id="toc-i.-inductivo" class="nav-link" data-scroll-target="#i.-inductivo">I. INDUCTIVO</a>
+  <ul>
+  <li><a href="#a-nivel-de-palabras" id="toc-a-nivel-de-palabras" class="nav-link" data-scroll-target="#a-nivel-de-palabras">A nivel de palabras</a></li>
+  <li><a href="#a-nivel-de-frases" id="toc-a-nivel-de-frases" class="nav-link" data-scroll-target="#a-nivel-de-frases">A nivel de FRASES</a></li>
+  <li><a href="#a-nivel-de-documento" id="toc-a-nivel-de-documento" class="nav-link" data-scroll-target="#a-nivel-de-documento">A nivel de documento</a></li>
+  </ul></li>
   <li><a href="#ii.-deductivo" id="toc-ii.-deductivo" class="nav-link" data-scroll-target="#ii.-deductivo">II. DEDUCTIVO</a></li>
   </ul></li>
   </ul>
@@ -156,6 +161,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="análisis-de-tópicos">Análisis de tópicos</h3>
 <section id="i.-inductivo" class="level4">
 <h4 class="anchored" data-anchor-id="i.-inductivo">I. INDUCTIVO</h4>
+<section id="a-nivel-de-palabras" class="level5">
+<h5 class="anchored" data-anchor-id="a-nivel-de-palabras">A nivel de palabras</h5>
 <p><strong>Análisis de perplejidad (k óptimo)</strong></p>
 <div class="cell">
 <div class="cell-output-display">
@@ -223,6 +230,257 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
+<section id="a-nivel-de-frases" class="level5">
+<h5 class="anchored" data-anchor-id="a-nivel-de-frases">A nivel de FRASES</h5>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="topicos-sentencias_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 54 × 4
+# Groups:   topic [5]
+   topic gamma doc_id frase                                                     
+   &lt;int&gt; &lt;dbl&gt;  &lt;int&gt; &lt;chr&gt;                                                     
+ 1     1 0.397    414 puerto montt, cuatro de septiembre de dos mil veintitrés.…
+ 2     1 0.382    355 visto, oido y considerando:primero: que ante este tribuna…
+ 3     1 0.365      8 arica, trece de diciembre de dos mil veinticuatro.-vistos…
+ 4     1 0.365    306 arica, trece de octubre de dos mil veintitrés.- vistos y …
+ 5     1 0.365    526 arica, treinta y uno de julio de dos mil veintitrés.- vis…
+ 6     1 0.359    361 arica, ventiocho de septiembre de dos mil veintitres.- vi…
+ 7     1 0.356    779 puerto montt, once de mayo de dos mil veintitrés vistos, …
+ 8     1 0.355    103 vistos, oído y considerando: primero: que ante este tribu…
+ 9     1 0.355    104 arica, uno de abril de dos mil veinticuatro.-vistos y oíd…
+10     1 0.353    243 nacimiento, de noviembre de 2023visto, oídos y consideran…
+# ℹ 44 more rows</code></pre>
+</div>
+</div>
+<p>Topic 1</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_frases_por_topico<span class="sc">$</span>frase[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "puerto montt, cuatro de septiembre de dos mil veintitrés.-vistos, oido y teniendo presente:primero: que ante este tribunal de familia de puerto montt se tramitó la causa ..."                                                 
+ [2] "visto, oido y considerando:primero: que ante este tribunal de familia de san felipe, el día veintisiete de septiembre en curso, se llevó a efecto audiencia de juicio oral de causa ..."                                       
+ [3] "arica, trece de diciembre de dos mil veinticuatro.-vistos y oídos:primero: que, ante este tribunal de familia de arica, en los autos ."                                                                                        
+ [4] "arica, trece de octubre de dos mil veintitrés.- vistos y oídos: primero: que, ante este tribunal de familia de arica, en los autos ."                                                                                          
+ [5] "arica, treinta y uno de julio de dos mil veintitrés.- vistos y oídos: primero: que, ante este tribunal de familia dearica, en los autos ."                                                                                     
+ [6] "arica, ventiocho de septiembre de dos mil veintitres.- vistos y oídos: primero: que, ante este tribunal de familia de arica, en estos autos ."                                                                                 
+ [7] "puerto montt, once de mayo de dos mil veintitrés vistos, oidos y teniendo presente primero: que ante este tribunal de familia se siguió esta causa por demanda de divorcio por culpa conjuntamente con compensación económica."
+ [8] "vistos, oído y considerando: primero: que ante este tribunal de familia de puerto montt se tramitó la causa ..."                                                                                                               
+ [9] "arica, uno de abril de dos mil veinticuatro.-vistos y oídos:primero: que, ante este tribunal de familia de arica, en los autos ."                                                                                              
+[10] "nacimiento, de noviembre de 2023visto, oídos y considerando: primero : que los días de marzo, de mayo, de septiembre, de octubre y de octubre de se l levó a efecto el juicio oral en estos antecedentes ."                    </code></pre>
+</div>
+</div>
+<p>Topic 2</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_frases_por_topico<span class="sc">$</span>frase[<span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "nacimiento, de noviembre de 2023visto, oídos y considerando: primero : que los días de marzo, de mayo, de septiembre, de octubre y de octubre de se l levó a efecto el juicio oral en estos antecedentes ."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+ [2] "san bernardo, diecisiete de julio de dos mil veintitrés.visto, oído los intervinientes y considerando:primero: que comparece doña zoe, empleada pública, casada, domiciliada en direccion000, comuna de direccion001, interpone demanda de divorcio por culpa en contra de don ian, trabajador independiente, casado, domiciliado en direccion002, direccion001.funda su demanda que mantuvieron una relación durante cuatro meses y se casaron con .al principio del matrimonio todo iba bien, tenían una buena relación dentro del matrimonio, fruto de él nacieron dos hijos teo de años y yan de años; ella además ya tenía una hija de dos años fruto de una relación anterior, que fue criada por..."
+ [3] "san bernardo, diecisiete de julio de dos mil veintitrés.visto, oído los intervinientes y considerando:primero: que comparece doña zoe, empleada pública, casada, domiciliada en direccion000, comuna de direccion001, interpone demanda de divorcio por culpa en contra de don ian, trabajador independiente, casado, domiciliado en direccion002, direccion001.funda su demanda que mantuvieron una relación durante cuatro meses y se casaron con .al principio del matrimonio todo iba bien, tenían una buena relación dentro del matrimonio, fruto de él nacieron dos hijos teo de años y yan de años; ella además ya tenía una hija de dos años fruto de una relación anterior, que fue criada por..."
+ [4] "del matrimonio nacieron los hijos yuliana, el num003 de , vicente, nacido el num004 de ,santino, nacido el num005 de y emerson, nacido..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+ [5] "del matrimonio nacieron los hijos yuliana, el num003 de , vicente, nacido el num004 de ,santino, nacido el num005 de y emerson, nacido..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+ [6] "san bernardo, diecisiete de julio de dos mil veintitrés.visto, oído los intervinientes y considerando:primero: que comparece doña zoe, empleada pública, casada, domiciliada en direccion000, comuna de direccion001, interpone demanda de divorcio por culpa en contra de don ian, trabajador independiente, casado, domiciliado en direccion002, direccion001.funda su demanda que mantuvieron una relación durante cuatro meses y se casaron con .al principio del matrimonio todo iba bien, tenían una buena relación dentro del matrimonio, fruto de él nacieron dos hijos teo de años y yan de años; ella además ya tenía una hija de dos años fruto de una relación anterior, que fue criada por..."
+ [7] "del matrimonio nacieron los hijos yuliana, el num003 de , vicente, nacido el num004 de ,santino, nacido el num005 de y emerson, nacido..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+ [8] "del matrimonio nacieron los hijos yuliana, el num003 de , vicente, nacido el num004 de ,santino, nacido el num005 de y emerson, nacido..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+ [9] "divorcio unilateral por cese de convivencia (subsidiaria)..abogado compareciente antonio andrés quispe huanca, run num003.forma notificacion correo electronicoparte demandadacomparecienterebeca, run num004, años, casada,..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+[10] "divorcio unilateral por cese de convivencia (subsidiaria)..abogado compareciente antonio andrés quispe huanca, run num003.forma notificacion correo electronicoparte demandadacomparecienterebeca, run num004, años, casada,..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </code></pre>
+</div>
+</div>
+<p>Topic 3</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_frases_por_topico<span class="sc">$</span>frase[<span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "plantilla acta de audiencia de juicio en causa sobredivorcio unilateral por culpa.-..abogado demandante (comparece)maria beatriz perez mansilla, mbeatriz.perezcajbiobio.cl.parte demandada (comparece presencialmente, pero aplica protocolo especial por medida cautelar vigente)gael, cédula de..."                                                                                                                                                 
+ [2] "plantilla de acta de audienciacontenciosa general..46nº registro de audio num000parte demandante nocomparecientedereckrun num001abogada parte demandantecomparecientemauricio javier díaz bunsterparte demandadacomparecientedayanarun num002abogado parte demandadacomparecienteignacio maldonado fuentesactuaciones efectuadas: si no ord (hecho de haberse efectuado o no) dictacion de sentencia x 1observaciones:se inicia la audiencia con la..."
+ [3] "plantilla de acta de audienciacontenciosa general..46nº registro de audio num000parte demandante nocomparecientedereckrun num001abogada parte demandantecomparecientemauricio javier díaz bunsterparte demandadacomparecientedayanarun num002abogado parte demandadacomparecienteignacio maldonado fuentesactuaciones efectuadas: si no ord (hecho de haberse efectuado o no) dictacion de sentencia x 1observaciones:se inicia la audiencia con la..."
+ [4] "plantilla de acta de audienciacontenciosa general..46nº registro de audio num000parte demandante nocomparecientedereckrun num001abogada parte demandantecomparecientemauricio javier díaz bunsterparte demandadacomparecientedayanarun num002abogado parte demandadacomparecienteignacio maldonado fuentesactuaciones efectuadas: si no ord (hecho de haberse efectuado o no) dictacion de sentencia x 1observaciones:se inicia la audiencia con la..."
+ [5] "plantilla de acta de audienciacontenciosa general..46nº registro de audio num000parte demandante nocomparecientedereckrun num001abogada parte demandantecomparecientemauricio javier díaz bunsterparte demandadacomparecientedayanarun num002abogado parte demandadacomparecienteignacio maldonado fuentesactuaciones efectuadas: si no ord (hecho de haberse efectuado o no) dictacion de sentencia x 1observaciones:se inicia la audiencia con la..."
+ [6] "plantilla de acta de audienciacontenciosa general..46nº registro de audio num000parte demandante nocomparecientedereckrun num001abogada parte demandantecomparecientemauricio javier díaz bunsterparte demandadacomparecientedayanarun num002abogado parte demandadacomparecienteignacio maldonado fuentesactuaciones efectuadas: si no ord (hecho de haberse efectuado o no) dictacion de sentencia x 1observaciones:se inicia la audiencia con la..."
+ [7] "acta de audiencia de juicio de divorcio por culpa y compensacioneconomica..nº registro de audio num000parte demandantecomparecedependencias deltribunalyairrut num001domiciliado en direccion000, direccion001.abogadodemandantecomparece vcalejandra noemí avendaño paez, con poder en autos.demandadano comparecelucíarun n num002domicilio reservado.abogado demandadacomparece vccarla torti, con poder en autos.i.- parte..."                     
+ [8] "acta de audiencia de juicio de divorcio por culpa y compensacioneconomica..nº registro de audio num000parte demandantecomparecedependencias deltribunalyairrut num001domiciliado en direccion000, direccion001.abogadodemandantecomparece vcalejandra noemí avendaño paez, con poder en autos.demandadano comparecelucíarun n num002domicilio reservado.abogado demandadacomparece vccarla torti, con poder en autos.i.- parte..."                     
+ [9] "acta de audiencia de juicio de divorcio por culpa y compensacioneconomica..nº registro de audio num000parte demandantecomparecedependencias deltribunalyairrut num001domiciliado en direccion000, direccion001.abogadodemandantecomparece vcalejandra noemí avendaño paez, con poder en autos.demandadano comparecelucíarun n num002domicilio reservado.abogado demandadacomparece vccarla torti, con poder en autos.i.- parte..."                     
+[10] "acta de audiencia de juicio de divorcio por culpa y compensacioneconomica..nº registro de audio num000parte demandantecomparecedependencias deltribunalyairrut num001domiciliado en direccion000, direccion001.abogadodemandantecomparece vcalejandra noemí avendaño paez, con poder en autos.demandadano comparecelucíarun n num002domicilio reservado.abogado demandadacomparece vccarla torti, con poder en autos.i.- parte..."                     </code></pre>
+</div>
+</div>
+<p>Topic 4</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_frases_por_topico<span class="sc">$</span>frase[<span class="dv">31</span><span class="sc">:</span><span class="dv">41</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "acta de audiencia de juicio de divorcio por culpa y compensacioneconomica..nº registro de audio num000parte demandantecomparecedependencias deltribunalyairrut num001domiciliado en direccion000, direccion001.abogadodemandantecomparece vcalejandra noemí avendaño paez, con poder en autos.demandadano comparecelucíarun n num002domicilio reservado.abogado demandadacomparece vccarla torti, con poder en autos.i.- parte..."                                                                                                                                                                             
+ [2] "que, comparecezoe, cédula nacional de identidad número num000, chilena, casada, labores de hogar, con domicilio en direccion000,direccion001, y deduce demanda de aumento de alimentos menores, en contra de don teo, chileno, casado, empleado, cédula de identidad número num001, con domicilio endireccion002, direccion001, solicitando el aumento de la pensión de alimentos establecida a favor de los hijos en común de las partes valery, cédula de identidad númeronum002, y ian cédula de identidad número num003, por haber variado las circunstancias tenidas a la vista al momento de fijar la..."
+ [3] "que, comparecezoe, cédula nacional de identidad número num000, chilena, casada, labores de hogar, con domicilio en direccion000,direccion001, y deduce demanda de aumento de alimentos menores, en contra de don teo, chileno, casado, empleado, cédula de identidad número num001, con domicilio endireccion002, direccion001, solicitando el aumento de la pensión de alimentos establecida a favor de los hijos en común de las partes valery, cédula de identidad númeronum002, y ian cédula de identidad número num003, por haber variado las circunstancias tenidas a la vista al momento de fijar la..."
+ [4] "que, comparecezoe, cédula nacional de identidad número num000, chilena, casada, labores de hogar, con domicilio en direccion000,direccion001, y deduce demanda de aumento de alimentos menores, en contra de don teo, chileno, casado, empleado, cédula de identidad número num001, con domicilio endireccion002, direccion001, solicitando el aumento de la pensión de alimentos establecida a favor de los hijos en común de las partes valery, cédula de identidad númeronum002, y ian cédula de identidad número num003, por haber variado las circunstancias tenidas a la vista al momento de fijar la..."
+ [5] "visto, oido y teniendo presente:primero: que comparece ante éste tribunal doña isis, casada, labores de hogar, domiciliada en direccion000, comuna de direccion001, quien interpone demanda de alimentos mayores y menores en favor de su hijo, y demanda de bien familiar, en contra de don erwin, trabajador dependiente, casado, domiciliado en direccion002, comuna dedireccion003.en cuanto a la demanda de alimentos, se tienen por reproducidas para todos los efectos legales los argumentos vertidos..."                                                                                              
+ [6] "visto, oido y teniendo presente:primero: que comparece ante éste tribunal doña isis, casada, labores de hogar, domiciliada en direccion000, comuna de direccion001, quien interpone demanda de alimentos mayores y menores en favor de su hijo, y demanda de bien familiar, en contra de don erwin, trabajador dependiente, casado, domiciliado en direccion002, comuna dedireccion003.en cuanto a la demanda de alimentos, se tienen por reproducidas para todos los efectos legales los argumentos vertidos..."                                                                                              
+ [7] "visto, oido y teniendo presente:primero: que comparece ante éste tribunal doña isis, casada, labores de hogar, domiciliada en direccion000, comuna de direccion001, quien interpone demanda de alimentos mayores y menores en favor de su hijo, y demanda de bien familiar, en contra de don erwin, trabajador dependiente, casado, domiciliado en direccion002, comuna dedireccion003.en cuanto a la demanda de alimentos, se tienen por reproducidas para todos los efectos legales los argumentos vertidos..."                                                                                              
+ [8] "visto, oido y teniendo presente:primero: que comparece ante éste tribunal doña isis, casada, labores de hogar, domiciliada en direccion000, comuna de direccion001, quien interpone demanda de alimentos mayores y menores en favor de su hijo, y demanda de bien familiar, en contra de don erwin, trabajador dependiente, casado, domiciliado en direccion002, comuna dedireccion003.en cuanto a la demanda de alimentos, se tienen por reproducidas para todos los efectos legales los argumentos vertidos..."                                                                                              
+ [9] "visto, oido y teniendo presente:primero: que comparece ante éste tribunal doña isis, casada, labores de hogar, domiciliada en direccion000, comuna de direccion001, quien interpone demanda de alimentos mayores y menores en favor de su hijo, y demanda de bien familiar, en contra de don erwin, trabajador dependiente, casado, domiciliado en direccion002, comuna dedireccion003.en cuanto a la demanda de alimentos, se tienen por reproducidas para todos los efectos legales los argumentos vertidos..."                                                                                              
+[10] "visto, oido y teniendo presente:primero: que comparece ante éste tribunal doña isis, casada, labores de hogar, domiciliada en direccion000, comuna de direccion001, quien interpone demanda de alimentos mayores y menores en favor de su hijo, y demanda de bien familiar, en contra de don erwin, trabajador dependiente, casado, domiciliado en direccion002, comuna dedireccion003.en cuanto a la demanda de alimentos, se tienen por reproducidas para todos los efectos legales los argumentos vertidos..."                                                                                              
+[11] "visto, oido y teniendo presente:primero: que comparece ante éste tribunal doña isis, casada, labores de hogar, domiciliada en direccion000, comuna de direccion001, quien interpone demanda de alimentos mayores y menores en favor de su hijo, y demanda de bien familiar, en contra de don erwin, trabajador dependiente, casado, domiciliado en direccion002, comuna dedireccion003.en cuanto a la demanda de alimentos, se tienen por reproducidas para todos los efectos legales los argumentos vertidos..."                                                                                              </code></pre>
+</div>
+</div>
+<p>Topic 5</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_frases_por_topico<span class="sc">$</span>frase[<span class="dv">42</span><span class="sc">:</span><span class="dv">51</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "vistos, oídos y teniendo presente:primero: que con ., en contra de su cónyuge doña esperanza, run n num001, desconoce ocupación u oficio, domiciliada en direccion002, direccion003, señalando que mantuvo una relación con la demandada por un año y tres meses aproximadamente, contrayendo finalmente matrimonio el de febrero de , en la circunscripción de penco, el cual se inscribió bajo el número num002, del registro de matrimonios del mismo año, bajo el..."                                                                                                                                                                                                                                                       
+ [2] "funda su acción señalando que contrajo matrimonio con la demandada el día de octubre de , en la circunscripción de la comuna de concepción, bajo el número num002, de dicho año."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+ [3] "vistos, oídos y teniendo presente:primero: que con ., en contra de su cónyuge doña esperanza, run n num001, desconoce ocupación u oficio, domiciliada en direccion002, direccion003, señalando que mantuvo una relación con la demandada por un año y tres meses aproximadamente, contrayendo finalmente matrimonio el de febrero de , en la circunscripción de penco, el cual se inscribió bajo el número num002, del registro de matrimonios del mismo año, bajo el..."                                                                                                                                                                                                                                                       
+ [4] "cauquenes, a veintinueve de noviembre de dos mil veintitrés.vistos, oídos y considerando:primero: que se presenta doña milena, labores de hogar, domiciliada endireccion000, comuna de direccion001, quien interpone demanda en juicio de divorcio por culpa, en contra de su cónyuge, don tristán, trabajador temporero, domiciliado en direccion002, comuna de direccion003, bajo los siguientes fundamentos.los hechos:el día de agosto del año , contrajo matrimonio con el demandado ante el oficial del servicio de registro civil de la circunscripción cauquenes, el que se inscribió bajo el número num000, en el registro de matrimonios correspondiente a dicho año; bajo régimen patrimonial de separación total..."
+ [5] "indicó que el de febrero del año , contrajo matrimonio, el cual se inscribió en el registro civil de la circunscripción de maule, bajo número de inscripción..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+ [6] "indicó que el de febrero del año , contrajo matrimonio, el cual se inscribió en el registro civil de la circunscripción de maule, bajo número de inscripción..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+ [7] ".funda su acción en que contrajo matrimonio con la demandada con .no habiendo pasado mucho tiempo desde la celebración de nuestro matrimonio,..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+ [8] "nnum001, chilena, casada, se desconoce profesión u oficio, domiciliad en direccion002,direccion003.indica que el actor contrajo matrimonio con la demandada el día de enero del año , ante el oficial del registro civil de la circunscripción de molina, el cual se encuentra insc."                                                                                                                                                                                                                                                                                                                                                                                                                                           
+ [9] "fundamenta su demanda en que conoció al demando el de noviembre de , luego de una relación sentimental de años decidieron contraer matrimonio el día de agosto de inscribiéndose bajo el número num002 del registro del mismo año en la circunscripción de san miguel, el régimen pactado fue el de separación de bienes y de dicha unión..."                                                                                                                                                                                                                                                                                                                                                                                   
+[10] "1concepción, tres de noviembre de dos mil veintitrés.visto:que, se ha iniciado esta causa, por demanda de divorcio, interpuesta por don iñigo, run num000, casado, diseñador gráfico, domiciliado endireccion000 direccion001; en contra de su cónyuge doña marcela,run num001, casada, contador auditor, domiciliada en direccion002,direccion003.señala que consta en certificado de matrimonio que acompaña, bajo el número de inscripción num002 del año del servicio de registro civil e identificación de la circunscripción concepción, que junto a la demandada de autos ya individualizada, contrajimos dicho vinculo el de noviembre del año ."                                                                       </code></pre>
+</div>
+</div>
+<p>Topic 6</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_frases_por_topico<span class="sc">$</span>frase[<span class="dv">52</span><span class="sc">:</span><span class="dv">61</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "1concepción, tres de noviembre de dos mil veintitrés.visto:que, se ha iniciado esta causa, por demanda de divorcio, interpuesta por don iñigo, run num000, casado, diseñador gráfico, domiciliado endireccion000 direccion001; en contra de su cónyuge doña marcela,run num001, casada, contador auditor, domiciliada en direccion002,direccion003.señala que consta en certificado de matrimonio que acompaña, bajo el número de inscripción num002 del año del servicio de registro civil e identificación de la circunscripción concepción, que junto a la demandada de autos ya individualizada, contrajimos dicho vinculo el de noviembre del año ."
+ [2] "el día de febrero de contrajo matrimonio con don didier, bajo régimen de sociedad conyugal, ante el oficial del registro civil e identificación, circunscripción deteodoro schmidt, el que se inscribió bajo el numero..."                                                                                                                                                                                                                                                                                                                                                                                                                               
+ [3] ".funda su acción en que contrajo matrimonio con la demandada con .no habiendo pasado mucho tiempo desde la celebración de nuestro matrimonio,..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ [4] NA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ [5] NA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ [6] NA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ [7] NA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ [8] NA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ [9] NA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+[10] NA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </code></pre>
+</div>
+</div>
+<p>Topic 7</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_frases_por_topico<span class="sc">$</span>frase[<span class="dv">62</span><span class="sc">:</span><span class="dv">71</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] NA NA NA NA NA NA NA NA NA NA</code></pre>
+</div>
+</div>
+</section>
+<section id="a-nivel-de-documento" class="level5">
+<h5 class="anchored" data-anchor-id="a-nivel-de-documento">A nivel de documento</h5>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># La matriz gamma: probabilidad de cada documento a cada tópico</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>gamma_docs <span class="ot">&lt;-</span> <span class="fu">tidy</span>(modelo_lda, <span class="at">matrix =</span> <span class="st">"gamma"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">doc_id =</span> document) <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">doc_id =</span> <span class="fu">as.integer</span>(doc_id))</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Unir con el texto original para tener contexto</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>gamma_completo <span class="ot">&lt;-</span> gamma_docs <span class="sc">%&gt;%</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(docs_df, <span class="at">by =</span> <span class="st">"doc_id"</span>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Asignar a cada documento su tópico más probable</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>doc_topico_dominante <span class="ot">&lt;-</span> gamma_completo <span class="sc">%&gt;%</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(doc_id) <span class="sc">%&gt;%</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(gamma, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(topic, <span class="sc">-</span>gamma)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(doc_topico_dominante)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1,306 × 4
+   doc_id topic gamma texto                                                     
+    &lt;int&gt; &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;                                                     
+ 1    542     1 0.397 "&lt;br/&gt;acta audiencia de juicio contenciosa general&lt;br/&gt;fe…
+ 2    478     1 0.382 "&lt;br/&gt;sentencia&lt;br/&gt;temuco, diecisiete de agosto de dos m…
+ 3     12     1 0.365 "&lt;br/&gt;acta de audiencia de juicio – divorcio por culpa.&lt;b…
+ 4    410     1 0.365 "&lt;br/&gt;segundo juzgado de familia de santiago.&lt;br/&gt;calle g…
+ 5    696     1 0.365 "&lt;br/&gt;tribunal de familia de tomé&lt;br/&gt;maipú n°1080, inter…
+ 6    482     1 0.359 "&lt;br/&gt;sentencia&lt;br/&gt;temuco, diecisiete de agosto de dos m…
+ 7   1028     1 0.356  &lt;NA&gt;                                                     
+ 8    138     1 0.355 "&lt;br/&gt;rit : c-6480-2023 fuentes/ávalos f. ing.: 25/07/202…
+ 9    139     1 0.355 "&lt;br/&gt;rit : c-6480-2023 fuentes/ávalos f. ing.: 25/07/202…
+10    344     1 0.353 "&lt;br/&gt;juzgado de familia - concepcion&lt;br/&gt;castellón n° 43…
+# ℹ 1,296 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Top N documentos con mayor probabilidad para cada tópico</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>top_docs_por_topico <span class="ot">&lt;-</span> gamma_completo <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(topic) <span class="sc">%&gt;%</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(gamma, <span class="at">n =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(topic, gamma, doc_id, texto) <span class="sc">%&gt;%</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(topic, <span class="sc">-</span>gamma)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top_docs_por_topico)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 54 × 4
+   topic gamma doc_id texto                                                     
+   &lt;int&gt; &lt;dbl&gt;  &lt;int&gt; &lt;chr&gt;                                                     
+ 1     1 0.397    542 "&lt;br/&gt;acta audiencia de juicio contenciosa general&lt;br/&gt;fe…
+ 2     1 0.382    478 "&lt;br/&gt;sentencia&lt;br/&gt;temuco, diecisiete de agosto de dos m…
+ 3     1 0.365     12 "&lt;br/&gt;acta de audiencia de juicio – divorcio por culpa.&lt;b…
+ 4     1 0.365    410 "&lt;br/&gt;segundo juzgado de familia de santiago.&lt;br/&gt;calle g…
+ 5     1 0.365    696 "&lt;br/&gt;tribunal de familia de tomé&lt;br/&gt;maipú n°1080, inter…
+ 6     1 0.359    482 "&lt;br/&gt;sentencia&lt;br/&gt;temuco, diecisiete de agosto de dos m…
+ 7     1 0.356   1028  &lt;NA&gt;                                                     
+ 8     1 0.355    138 "&lt;br/&gt;rit : c-6480-2023 fuentes/ávalos f. ing.: 25/07/202…
+ 9     1 0.355    139 "&lt;br/&gt;rit : c-6480-2023 fuentes/ávalos f. ing.: 25/07/202…
+10     1 0.353    344 "&lt;br/&gt;juzgado de familia - concepcion&lt;br/&gt;castellón n° 43…
+# ℹ 44 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cuántos documentos dominan en cada tópico + gamma promedio</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>resumen_topicos <span class="ot">&lt;-</span> doc_topico_dominante <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(topic) <span class="sc">%&gt;%</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_documentos    =</span> <span class="fu">n</span>(),</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma_promedio  =</span> <span class="fu">mean</span>(gamma),</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma_max       =</span> <span class="fu">max</span>(gamma),</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">gamma_min       =</span> <span class="fu">min</span>(gamma)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>n_documentos)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(resumen_topicos)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 5
+  topic n_documentos gamma_promedio gamma_max gamma_min
+  &lt;int&gt;        &lt;int&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+1     3          342          0.277     0.494     0.204
+2     1          288          0.263     0.397     0.204
+3     5          262          0.259     0.368     0.204
+4     4          235          0.312     0.551     0.204
+5     2          179          0.255     0.377     0.204</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>doc_topico_dominante <span class="sc">%&gt;%</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(topic) <span class="sc">%&gt;%</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(topic), <span class="at">y =</span> n, <span class="at">fill =</span> <span class="fu">factor</span>(topic))) <span class="sc">+</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">rep</span>(<span class="st">"#9265A6"</span>, k)) <span class="sc">+</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Documentos asignados por tópico"</span>,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x     =</span> <span class="st">"Tópico"</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">y     =</span> <span class="st">"N documentos"</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="topicos-sentencias_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Seleccionar documentos con alta certeza de pertenencia a su tópico</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>muestra_reducida <span class="ot">&lt;-</span> doc_topico_dominante <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(gamma <span class="sc">&gt;</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span>          <span class="co"># umbral de probabilidad — ajustable</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(topic) <span class="sc">%&gt;%</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(gamma, <span class="at">n =</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span>     <span class="co"># top 20 por tópico — ajustable</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(topic, <span class="sc">-</span>gamma)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Documentos seleccionados:"</span>, <span class="fu">nrow</span>(muestra_reducida), <span class="st">"de"</span>, <span class="fu">nrow</span>(docs_df))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Documentos seleccionados: 4 de 887</code></pre>
+</div>
+</div>
+</section>
+</section>
 <section id="ii.-deductivo" class="level4">
 <h4 class="anchored" data-anchor-id="ii.-deductivo">II. DEDUCTIVO</h4>
 <p><strong>Modelo KeyATM (Keyword Assisted Topic Models)</strong></p>
@@ -234,18 +492,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Identfiicar los tópicos y sus palabras semilla</strong></p>
 <p>En este paso es importante tener claridad de los tópicos que nos gustaría probar que permitan capturar correctamente la <em>“gramática moral</em>” y la relación con los <em>ideales democráticos (igualdad y autonomía personal)</em> en la vida familiar.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Definir topicos</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>palabras_clave <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"igualdad_carga_domestica"</span>   <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"cuidado"</span>, <span class="st">"trabajo"</span>, <span class="st">"carga"</span>, <span class="st">"casa"</span>, <span class="st">"doméstica"</span>, <span class="st">"hogar"</span>, <span class="st">"responsabilidad"</span>),</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"igualdad_parentalidad"</span>     <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"crianza"</span>, <span class="st">"padre"</span>, <span class="st">"madre"</span>, <span class="st">"hijo"</span>, <span class="st">"hija"</span>, <span class="st">"participación"</span>),</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"autonomia_personal_restringida"</span>     <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"violencia"</span>, <span class="st">"violencia física"</span>, <span class="st">"violencia psicológica"</span>, <span class="st">"infidelidad"</span>),</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"derecho_proyecto_propio"</span>      <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"carrera"</span>, <span class="st">"proyecto"</span>, <span class="st">"vida"</span>, <span class="st">"desarrollo"</span>, <span class="st">"personal"</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Definir topicos</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>palabras_clave <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"igualdad_carga_domestica"</span>   <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"cuidado"</span>, <span class="st">"trabajo"</span>, <span class="st">"carga"</span>, <span class="st">"casa"</span>, <span class="st">"doméstica"</span>, <span class="st">"hogar"</span>, <span class="st">"responsabilidad"</span>),</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"igualdad_parentalidad"</span>     <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"crianza"</span>, <span class="st">"padre"</span>, <span class="st">"madre"</span>, <span class="st">"hijo"</span>, <span class="st">"hija"</span>, <span class="st">"participación"</span>),</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"autonomia_personal_restringida"</span>     <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"violencia"</span>, <span class="st">"violencia física"</span>, <span class="st">"violencia psicológica"</span>, <span class="st">"infidelidad"</span>),</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"derecho_proyecto_propio"</span>      <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"carrera"</span>, <span class="st">"proyecto"</span>, <span class="st">"vida"</span>, <span class="st">"desarrollo"</span>, <span class="st">"personal"</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Definir el número de palabras por tópico</strong></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ver palabras por tópico</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">top_words</span>(modelo_keyatm, <span class="at">n =</span> <span class="dv">15</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ver palabras por tópico</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">top_words</span>(modelo_keyatm, <span class="at">n =</span> <span class="dv">15</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   1_igualdad_carga_domestica 2_igualdad_parentalidad
 1                    divorcio                divorcio
@@ -299,7 +557,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>El data.frame doc_topicos nos permite cuantificar, a un nivel general de los documentos, a cual tributan más cada uno en los tópicos propuestos, indicando su probabilidad. Con ello, podemos ver cuáles tienen mayor afinidad (o mayor probabilidad) con el tópico y seleccionar un primer corpus reducido.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sjmisc<span class="sc">::</span><span class="fu">frq</span>(doc_topicos<span class="sc">$</span>topico)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>sjmisc<span class="sc">::</span><span class="fu">frq</span>(doc_topicos<span class="sc">$</span>topico)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>x &lt;character&gt; 
 # total N=887 valid N=887 mean=3.93 sd=1.70

@@ -1,5 +1,5 @@
 ---
-title: "Análisis de tópicos: sentencias en materia de DIVORCIO POR CULPA"
+title: "Análisis de tópicos: ejemplo con una sentencia de divorcio por culpa"
 author: "Fondecyt Familias"
 fontsize: 12pt
 #bibliography: "../input/mini-proyecto.bib"
@@ -44,14 +44,10 @@ pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats,
                purrr, knitr, kableExra, tidytext, topicmodels,
                tidyr)
 
-# cargamos los datos
-load("../input/sentencias_divorcio_culpa.Rdata")
+texto <- pdf_text("C:/Users/LENOVO/Documents/GitHub/analisis-inicial/input/sentencia.pdf") 
+texto <- str_to_lower(texto)
 
-# seleccionamos y renombramos columna text
-sentencias <- sentencias_culpa %>% select(id, tribunal, fecha, text = texto)
-
-# generamos corpus 
-corpus_sentencia <- corpus(sentencias)
+corpus_sentencia <- corpus(texto)
 toks_sentencia <-  corpus_sentencia %>% 
   tokens()
 
@@ -61,10 +57,7 @@ corpus_sentencia <- str_to_lower(corpus_sentencia)
 
 ### Datos
 
-Se presentan **887 sentencias**
-
-- responden a la materia "*DIVORCIO POR CULPA*" 
-- emtre los años **2023** y **2024**. 
+Se analiza un documento con 66 páginas. 
 
 
 ### Análisis de tópicos
@@ -73,7 +66,7 @@ Se presentan **887 sentencias**
 #### I. INDUCTIVO
 
 
-##### A nivel de palabras
+##### A nivel de PALABRAS
 
 ```{r}
 #| echo: false
@@ -136,7 +129,7 @@ El análisis de perplejidad nos indica que el **número óptimo de tópicos es 1
 #| warning: false
 #| message: false
 
-k <- 16 
+k <- 7
 
 modelo_lda <- LDA(
   dtm,
@@ -172,49 +165,6 @@ Se indica que agrupe las 20 palabras con mayor probabilidad de ser parte del tó
 
 
 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-
-
-# GRAFICO
-
-# Función para graficar un subconjunto de tópicos
-grafico_topicos <- function(datos, topicos) {
-  datos %>%
-    filter(topic %in% topicos) %>%
-    mutate(term = reorder_within(term, beta, topic)) %>%
-    ggplot(aes(x = beta, y = term, fill = factor(topic))) +
-    geom_col(show.legend = FALSE) +
-    facet_wrap(~ topic, scales = "free_y", labeller = label_both) +
-    scale_y_reordered() +
-    scale_fill_manual(values = rep("#9265A6", length(topicos))) +
-    labs(
-      title = paste("Tópicos", min(topicos), "al", max(topicos)),
-      x     = "beta",
-      y     = NULL
-    ) +
-    theme_minimal(base_size = 12) +
-    theme(
-      strip.text       = element_text(face = "bold"),
-      panel.grid.minor = element_blank()
-    )
-}
-
-# Generar los 4 gráficos
-g1 <- grafico_topicos(palabras_topicos, 1:4)
-g2 <- grafico_topicos(palabras_topicos, 5:8)
-g3 <- grafico_topicos(palabras_topicos, 9:12)
-g4 <- grafico_topicos(palabras_topicos, 13:16)
-
-# Mostrarlos individualmente
-g1
-g2
-g3
-g4
-
-```
 
 
 ##### A nivel de FRASES
@@ -293,7 +243,7 @@ plot(valores_k, perplejidad, type = "b", pch = 19,
      main = "Selección de k óptimo (nivel frase)")
 
 # Con k óptimo elegido
-k <- 5
+k <- 6
 modelo_lda <- LDA(
   dtm_frases,
   k       = k,
@@ -338,114 +288,6 @@ Topic 1
 print(top_frases_por_topico$frase[1:10])
 ```
 
-Topic 2 
-```{r}
-print(top_frases_por_topico$frase[11:20])
-```
-
-Topic 3 
-
-```{r}
-print(top_frases_por_topico$frase[21:30])
-```
-
-Topic 4 
-
-```{r}
-print(top_frases_por_topico$frase[31:41])
-```
-
-
-Topic 5 
-
-```{r}
-print(top_frases_por_topico$frase[42:51])
-```
-
-Topic 6
-
-```{r}
-print(top_frases_por_topico$frase[52:61])
-```
-
-Topic 7 
-
-```{r}
-print(top_frases_por_topico$frase[62:71])
-```
-
-
-##### A nivel de documento
-
-```{r}
-# La matriz gamma: probabilidad de cada documento a cada tópico
-gamma_docs <- tidy(modelo_lda, matrix = "gamma") %>%
-  rename(doc_id = document) %>%
-  mutate(doc_id = as.integer(doc_id))
-
-# Unir con el texto original para tener contexto
-gamma_completo <- gamma_docs %>%
-  left_join(docs_df, by = "doc_id")
-
-# Asignar a cada documento su tópico más probable
-doc_topico_dominante <- gamma_completo %>%
-  group_by(doc_id) %>%
-  slice_max(gamma, n = 1) %>%
-  ungroup() %>%
-  arrange(topic, -gamma)
-
-print(doc_topico_dominante)
-
-# Top N documentos con mayor probabilidad para cada tópico
-top_docs_por_topico <- gamma_completo %>%
-  group_by(topic) %>%
-  slice_max(gamma, n = 10) %>%
-  ungroup() %>%
-  select(topic, gamma, doc_id, texto) %>%
-  arrange(topic, -gamma)
-
-print(top_docs_por_topico)
-
-# Cuántos documentos dominan en cada tópico + gamma promedio
-resumen_topicos <- doc_topico_dominante %>%
-  group_by(topic) %>%
-  summarise(
-    n_documentos    = n(),
-    gamma_promedio  = mean(gamma),
-    gamma_max       = max(gamma),
-    gamma_min       = min(gamma)
-  ) %>%
-  arrange(-n_documentos)
-
-print(resumen_topicos)
-
-
-doc_topico_dominante %>%
-  count(topic) %>%
-  ggplot(aes(x = factor(topic), y = n, fill = factor(topic))) +
-  geom_col(show.legend = FALSE) +
-  scale_fill_manual(values = rep("#9265A6", k)) +
-  labs(
-    title = "Documentos asignados por tópico",
-    x     = "Tópico",
-    y     = "N documentos"
-  ) +
-  theme_minimal(base_size = 12)
-```
-
-
-```{r}
-# Seleccionar documentos con alta certeza de pertenencia a su tópico
-muestra_reducida <- doc_topico_dominante %>%
-  filter(gamma > 0.5) %>%          # umbral de probabilidad — ajustable
-  group_by(topic) %>%
-  slice_max(gamma, n = 20) %>%     # top 20 por tópico — ajustable
-  ungroup() %>%
-  arrange(topic, -gamma)
-
-cat("Documentos seleccionados:", nrow(muestra_reducida), "de", nrow(docs_df))
-```
-
 
 #### II. DEDUCTIVO
 
@@ -474,11 +316,26 @@ pacman::p_load(keyATM, quanteda)
 #1. **Vectorizar el texto mediante un objeto DFM**
 # En este primer paso, vamos a representar el texto en un vector de números. Para ello, generamos una matriz DFM.
 # Tokenizar
+library(stringr)
+
+frases_paginas <- str_split(
+  texto,
+  "(?<=[.!?])\\s+"
+)
+
+corpus_sentencia <- corpus(unlist(frases_paginas))
+toks_sentencia <-  corpus_sentencia %>% 
+  tokens()
+
+# pasamos todo el texto a minúsculas:
+corpus_sentencia <- str_to_lower(corpus_sentencia)
+
 toks <- tokens(corpus_sentencia,
   remove_punct    = TRUE,
   remove_numbers  = TRUE,
   remove_symbols  = TRUE
 )
+
 
 #  stopwords 
 toks <- tokens_remove(toks, pattern = c(
@@ -548,7 +405,7 @@ modelo_keyatm <- keyATM(
 #| warning: false
 #| message: false
 # Ver palabras por tópico
-top_words(modelo_keyatm, n = 15)
+top_words(modelo_keyatm, n = 30)
 ```
 
 
@@ -558,65 +415,80 @@ top_words(modelo_keyatm, n = 15)
 #| echo: false
 #| warning: false
 #| message: false
-#  **Generamos el objeto final que ordena los documentos por tópico y su probabilidad asociada**
-doc_topicos <- as.data.frame(modelo_keyatm$theta) %>%  # theta = prob doc~tópico
-  mutate(doc_id = row_number()) %>%
-  pivot_longer(-doc_id, names_to = "topico", values_to = "probabilidad") %>%
-  group_by(doc_id) %>%
-  slice_max(probabilidad, n = 1) %>%
-  ungroup() %>%
-  left_join(docs_df, by = "doc_id")
-```
 
 
-El data.frame doc_topicos nos permite cuantificar, a un nivel general de los documentos, a cual tributan más cada uno en los tópicos propuestos, indicando su probabilidad. Con ello, podemos ver cuáles tienen mayor afinidad (o mayor probabilidad) con el tópico y seleccionar un primer corpus reducido. 
+# para seleccionar los documentos 
+#top_docs(modelo_keyatm)
 
-```{r}
-sjmisc::frq(doc_topicos$topico)
-```
+theta <- modelo_keyatm$theta
+dim(theta)
 
+top_idx <- order(theta[,3], decreasing = TRUE)[1:20]
 
+frases_vector <- unlist(frases_paginas)
 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-top1 <- doc_topicos %>% filter(topico == "1_igualdad_carga_domestica")
+frases_vector[top_idx]
 
-top1 <- top1 %>% filter(probabilidad >=  0.9) #36 filas 
 
 ```
 
+Igualdad carga doméstica 
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-top2 <- doc_topicos %>% filter(topico == "2_igualdad_parentalidad") # 40
+top_idx <- order(theta[,1], decreasing = TRUE)[1:10]
 
-#top2 <- top2 %>% filter(probabilidad >=  0.9) #36 filas 
+frases_vector <- unlist(frases_paginas)
+
+frases_vector[top_idx]
+
 
 ```
+
+Igualdad parentalidad
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-top3 <- doc_topicos %>% filter(topico == "3_autonomia_personal_restringida")
 
-#top1 <- top1 %>% filter(probabilidad >=  0.9) #36 filas 
+top_idx <- order(theta[,2], decreasing = TRUE)[1:10]
+
+frases_vector <- unlist(frases_paginas)
+
+frases_vector[top_idx]
 
 ```
+
+Autonmía personal restringida 
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-top4 <- doc_topicos %>% filter(topico == "4_derecho_proyecto_propio")
 
-top4 <- top4 %>% filter(probabilidad >=  0.9) #29 filas 
+top_idx <- order(theta[,3], decreasing = TRUE)[1:10]
+
+frases_vector <- unlist(frases_paginas)
+
+frases_vector[top_idx]
 
 ```
 
+Derecho proyecto propio
 
-IMPORTANTE: mejorar las categorias del modelo keyATM
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+top_idx <- order(theta[,4], decreasing = TRUE)[1:10]
+
+frases_vector <- unlist(frases_paginas)
+
+frases_vector[top_idx]
+
+```
+
