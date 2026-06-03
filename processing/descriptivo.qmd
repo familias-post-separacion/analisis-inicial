@@ -1,0 +1,467 @@
+---
+title: "Análisis descriptivo corpus"
+author: "Fondecyt Familias"
+fontsize: 12pt
+#bibliography: "../input/mini-proyecto.bib"
+#csl: "input/bib/apa6.csl"
+format:
+  html:
+    toc: true
+    toc-location: right
+    toc-depth: 6
+    toc-expand: 6
+    toc-title: Contenidos
+    number-sections: false
+    number-depth: 6
+    theme: 
+    - cosmo
+    title-block-banner: true
+    title-block-banner-color: "#9265A6"
+editor: visual
+lang: es
+---
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+pacman::p_load(pdftools, stringr, quanteda, quanteda.textstats,
+               quanteda.textplots, dplyr, ggplot2, reticulate,
+               purrr, knitr, kableExra, tidytext, topicmodels,
+               tidyr, lubridate)
+
+#texto <- readRDS("C:/Users/LENOVO/Documents/GitHub/analisis-inicial/input/textos_pdf.RDS") 
+
+# datos csv 
+datos_sentencias <- read.csv("C:/Users/LENOVO/Documents/GitHub/analisis-inicial/input/sentencias_texto.csv")
+
+
+```
+
+# Descriptivos generales del corpus 
+```{r}
+#| echo: false
+
+
+# fechas
+
+datos_sentencias <- datos_sentencias %>%
+  mutate(
+    fecha = ymd_hms(fecha),   # parsea el formato ISO 8601
+    anio  = year(fecha),
+    mes_num   = month(fecha),          # número: 1–12
+   mes = month(fecha, label = TRUE)  # opcional: "Jan", "Feb"...
+  )
+
+datos_sentencias <- select(datos_sentencias,
+                           id,
+                           tribunal,
+                           materia,
+                           paginas,
+                           anio,
+                           mes)
+
+# materia 
+datos_sentencias <- datos_sentencias %>%
+  mutate(materia = str_extract(materia, "^[^;]+") %>% str_trim())
+
+# filtrar por materia
+datos_sentencias_dp <- filter(datos_sentencias, materia == "DIVORCIO POR CULPA")
+
+# data set con mayor cantidad de pags por año y mes
+dp <- datos_sentencias_dp %>%
+  group_by(anio, mes) %>%
+  slice_max(paginas, n = 1, with_ties = FALSE) %>%
+  ungroup()
+
+
+```
+
+## Según materia 
+
+### Divorcio por culpa
+
+1051 documentos
+
+#### Fecha
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+library(janitor)
+
+datos_sentencias_dp %>%
+  mutate(
+    mes = factor(mes,
+                 levels = c("ene","feb","mar","abr","may","jun",
+                            "jul","ago","sep","oct","nov","dic"),
+                 labels = c("Ene","Feb","Mar","Abr","May","Jun",
+                            "Jul","Ago","Sep","Oct","Nov","Dic")),
+    anio = as.integer(anio)
+  ) %>%
+  count(anio, mes, .drop = FALSE) %>%
+  pivot_wider(names_from = mes, values_from = n, values_fill = 0) %>%
+  mutate(Total = rowSums(across(-anio))) %>%
+  rename(Año = anio) %>%
+  adorn_totals("row") %>%
+  kbl(caption = "Tabla 1. Frecuencia de casos por año y mes",
+      align = c("l", rep("c", 13)),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(14, bold = TRUE, background = "#f0f0f0") 
+
+
+```
+
+
+#### Extensión de páginas
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+
+datos_sentencias_dp %>%
+  mutate(anio = as.integer(anio)) %>%
+  count(paginas, anio) %>%
+  pivot_wider(names_from = anio, values_from = n, values_fill = 0) %>%
+  rename(Páginas = paginas) %>%
+  mutate(Total = rowSums(across(-Páginas))) %>%
+  arrange(Páginas) %>%
+  kbl(caption = "Tabla 2. Frecuencia de casos según número de páginas y año",
+      align = c("l", rep("c", ncol(.) - 1)),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) 
+
+
+```
+
+
+#### Tribunal 
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+
+
+library(dplyr)
+library(stringr)
+
+df <- datos_sentencias_dp%>%
+  mutate(
+    # --- Opción A: Tipo de tribunal (Letras y Letras y Garantía unificados) ---
+    tipo_tribunal = case_when(
+      str_detect(tribunal, regex("juzgado de familia", ignore_case = TRUE)) ~ "Juzgado de Familia",
+      str_detect(tribunal, regex("jgdo\\. l\\.|letras y garantía|letras y garantia|juzgado de letras", ignore_case = TRUE)) ~ "Juzgado de Letras",
+      str_detect(tribunal, regex("centro de medidas", ignore_case = TRUE)) ~ "Otro",
+      TRUE ~ "Otro"
+    ),
+    
+    # --- Opción B: Ciudad (limpiando "Familia" y prefijos numéricos) ---
+    ciudad_tribunal = tribunal %>%
+      str_remove(regex("^\\d+\\s+", ignore_case = TRUE)) %>%          # elimina "1 ", "2 ", etc.
+      str_remove(regex("juzgado de familia\\s*", ignore_case = TRUE)) %>%  # elimina "Juzgado de Familia"
+      str_remove(regex("jgdo\\. l\\. y g\\.\\s*(de)?\\s*", ignore_case = TRUE)) %>%
+      str_remove(regex("jgdo\\. l\\.\\s*(de)?\\s*", ignore_case = TRUE)) %>%
+      str_remove(regex("juzgado de letras y garantía\\s*(de)?\\s*", ignore_case = TRUE)) %>%
+      str_remove(regex("juzgado de letras\\s*(de)?\\s*", ignore_case = TRUE)) %>%
+      str_remove(regex("centro de medidas cautelares.*", ignore_case = TRUE)) %>%
+      str_trim() %>%
+      str_to_title(),
+    
+    # --- Opción C: Región ---
+    region_tribunal = case_when(
+      ciudad_tribunal %in% c("Arica") ~ "Arica y Parinacota",
+      ciudad_tribunal %in% c("Iquique", "Alto Hospicio", "Pozo Almonte") ~ "Tarapacá",
+      ciudad_tribunal %in% c("Antofagasta", "Calama", "Tocopilla", "Taltal") ~ "Antofagasta",
+      ciudad_tribunal %in% c("Copiapó", "Vallenar", "Chañaral", "Caldera", "Freirina") ~ "Atacama",
+      ciudad_tribunal %in% c("La Serena", "Coquimbo", "Ovalle", "Illapel", "Vicuña", "Combarbalá") ~ "Coquimbo",
+      ciudad_tribunal %in% c("Valparaíso", "Viña Del Mar", "Quilpue", "Villa Alemana",
+                              "Quillota", "San Antonio", "San Felipe", "Los Andes",
+                              "La Ligua", "Limache", "Casablanca", "Petorca", "Quintero") ~ "Valparaíso",
+      ciudad_tribunal %in% c("Santiago", "San Miguel", "Puente Alto", "Pudahuel",
+                              "Colina", "Talagante", "Peñaflor", "Melipilla", "Buin",
+                              "San Bernardo") ~ "Región Metropolitana",
+      ciudad_tribunal %in% c("Rancagua", "San Fernando", "Rengo", "Santa Cruz",
+                              "Pichilemu", "Peralillo", "Putaendo", "San Vicente") ~ "O'Higgins",
+      ciudad_tribunal %in% c("Talca", "Curico", "Linares", "Constitución", "Parral",
+                              "Curepto", "San Javier", "Cauquenes", "Licanten", "Molina") ~ "Maule",
+      ciudad_tribunal %in% c("Chillan", "Los Angeles", "Coronel", "Concepción",
+                              "Talcahuano", "Tomé", "Cañete", "Lebu", "Curanilahue",
+                              "Laja", "Nacimiento", "Yungay", "Bulnes", "Cabrero",
+                              "Quirihue", "Santa Barbara") ~ "Biobío",
+      ciudad_tribunal %in% c("Temuco", "Angol", "Nueva Imperial", "Lautaro",
+                              "Villarrica", "Pucón", "Pitrufquen", "Carahue",
+                              "Collipulli", "Curacautín", "Traiguen", "Victoria") ~ "La Araucanía",
+      ciudad_tribunal %in% c("Valdivia", "La Unión", "Rio Bueno", "Paillaco",
+                              "Panguipulli", "Mariquina", "Loncoche") ~ "Los Ríos",
+      ciudad_tribunal %in% c("Osorno", "Puerto Montt", "Puerto Varas", "Castro",
+                              "Ancud", "Quellón", "Rio Negro", "Muermos",
+                              "San Carlos", "Los Lagos") ~ "Los Lagos",
+      ciudad_tribunal %in% c("Coyhaique", "Aysen", "Puerto Cisne") ~ "Aysén",
+      ciudad_tribunal %in% c("Punta Arenas", "Puerto Natales") ~ "Magallanes",
+      ciudad_tribunal == "" ~ "Otro",
+      TRUE ~ "Sin clasificar"
+    )
+  )
+
+df <- df %>%
+  mutate(
+    region_tribunal = factor(region_tribunal,
+      levels = c(
+        "Arica y Parinacota",
+        "Tarapacá",
+        "Antofagasta",
+        "Atacama",
+        "Coquimbo",
+        "Valparaíso",
+        "Región Metropolitana",
+        "O'Higgins",
+        "Maule",
+        "Biobío",
+        "La Araucanía",
+        "Los Ríos",
+        "Los Lagos",
+        "Aysén",
+        "Magallanes",
+        "Otro",
+        "Sin clasificar"
+      )
+    )
+  )
+
+#d <- df %>% filter(region_tribunal == "Sin clasificar")
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+library(janitor)
+
+df %>%
+  mutate(anio = as.integer(anio)) %>%
+  count(region_tribunal, anio) %>%
+  pivot_wider(names_from = anio, values_from = n, values_fill = 0) %>%
+  rename(Región = region_tribunal) %>%
+  mutate(Total = rowSums(across(-Región))) %>%
+  arrange(desc(Total)) %>%
+  adorn_totals("row") %>%
+  kbl(caption = "Tabla 3. Frecuencia de casos por región del tribunal y año",
+      align = c("l", rep("c", ncol(.) - 1)),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) 
+
+
+df %>%
+  mutate(anio = as.integer(anio)) %>%
+  count(tipo_tribunal, anio) %>%
+  pivot_wider(names_from = anio, values_from = n, values_fill = 0) %>%
+  rename(Tipo = tipo_tribunal) %>%
+  mutate(Total = rowSums(across(-Tipo))) %>%
+  arrange(desc(Total)) %>%
+  adorn_totals("row") %>%
+  kbl(caption = "Tabla 4. Frecuencia de casos por tipo de tribunal y año",
+      align = c("l", rep("c", ncol(.) - 1)),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) 
+```
+
+
+#### Subset de sentencias con mayor extensión por año y mes
+
+Se selecciona solo un documento por mes y año.  
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+
+dp  %>%
+  mutate(
+    anio = as.integer(anio),
+    mes = factor(mes,
+                 levels = c("ene","feb","mar","abr","may","jun",
+                            "jul","ago","sep","oct","nov","dic"),
+                 labels = c("Ene","Feb","Mar","Abr","May","Jun",
+                            "Jul","Ago","Sep","Oct","Nov","Dic"))
+  ) %>%
+  arrange(anio, mes) %>%
+  select(id, anio, mes, paginas) %>%  # <-- id agregado
+  rename(
+    ID       = id,
+    Año      = anio,
+    Mes      = mes,
+    Páginas  = paginas
+  ) %>%
+  kbl(caption = "Tabla 5. Documento de mayor extensión por mes y año",
+      align = c("c", "c", "c", "c", "l", "l"),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(4, bold = TRUE) 
+
+```
+
+
+
+```{r}
+#| echo: false
+#| eval: false
+
+
+#pasar a minuscula
+texto <- str_to_lower(texto)
+
+#limpiar texto
+limpiar_texto <- function(texto) {
+  texto %>%
+    # HTML tags
+    str_remove_all("<[^>]+>") %>%
+    
+    # Encabezados institucionales
+    str_remove_all("(?i)juzgado de familia[^\n]*") %>%
+    str_remove_all("(?i)vicuña mackenna[^\n]*") %>%
+    str_remove_all("(?i)teléfono:[^\n]*") %>%
+    str_remove_all("(?i)e-mail:[^\n]*") %>%
+    str_remove_all("(?i)acta audiencia[^\n]*") %>%
+    str_remove_all("(?i)(ruc|rit|materia|magistrado|consejero técnico|encargado de acta|hora de inicio|hora de término|hora de termino|presentación|fecha)[^\\n\\.]*") %>%
+    
+    # Códigos de causa
+    str_remove_all("\\d{2}-\\s*\\d-\\d{7}-\\d") %>%
+    str_remove_all("(?i)[a-z]-\\d{3,}-\\d{4}") %>%
+    
+    # ---- NUEVOS PATRONES ----
+    
+    # Placeholders tipo num000, num001, num123...
+    str_remove_all("(?i)\\bnum\\d+\\b") %>%
+    
+    # Placeholders tipo direccion001, direccion002...
+    str_remove_all("(?i)\\bdireccion\\d+\\b") %>%
+    
+    # Saltos de línea \n pegados o sueltos (incluyendo múltiples)
+    str_replace_all("\\n+", " ") %>%
+    
+    # Montos monetarios: $..-, $.-, $1.234.-
+    str_remove_all("\\$[\\d\\.\\,\\-]*") %>%
+    
+    # Comas pegadas a números: ,20256
+    str_remove_all(",\\d+") %>%
+    
+    # Puntos y guiones al final de cláusulas: .-  .–
+    str_remove_all("\\.[-–]") %>%
+    
+    # Guion largo y similares
+    str_remove_all("[–—]") %>%
+    
+    # Numeración romana de items: i.- ii.- iii.- etc.
+    str_remove_all("(?i)\\b(i{1,3}|iv|vi{0,3}|ix|x)\\.[-–]?\\s*") %>%
+    
+    # ---- PATRONES ORIGINALES ----
+    str_remove_all("[➢°•·]") %>%
+    str_remove_all("[@_]") %>%
+    str_remove_all("\\b\\d{1,4}\\b") %>%
+    
+    # Espacios múltiples y limpieza final
+    str_replace_all("\\s+", " ") %>%
+    str_trim()
+}
+```
+
+
+```{r}
+#| echo: false
+#| eval: false
+
+#FRASES
+
+corpus_sentencia <- corpus(texto)
+toks_sentencia <-  corpus_sentencia %>% 
+  tokens()
+
+
+# 2. Segmentar en frases, aplicando limpieza antes de segmentar
+frases_df <- tibble(
+  id = seq_along(corpus_sentencia),
+  texto  = as.character(corpus_sentencia)
+) %>%
+  mutate(texto = limpiar_texto(texto)) %>%  # <-- limpieza aquí
+  mutate(
+    frase = map(texto, function(t) {
+      fs <- unlist(strsplit(t, "(?<=[.!?])\\s+", perl = TRUE))
+      fs <- fs[nchar(trimws(fs)) > 40]
+      tibble(frase_id_local = seq_along(fs), frase = fs)
+    })
+  ) %>%
+  select(-texto) %>%
+  unnest(frase) %>%
+  mutate(frase_id_global = row_number())
+
+# 3. DTM (limpiar_minimo ya es menos necesario, pero se mantiene por seguridad)
+limpiar_minimo <- c(
+  "<", ">", "<br/>", "°", "br",
+  "direccion000", "direccion001",
+  "num000", "num001", "rit",
+  "fecha", "hora"
+)
+
+dtm_frases <- frases_df %>%
+  unnest_tokens(palabra, frase) %>%
+  filter(!palabra %in% limpiar_minimo) %>%
+  filter(nchar(palabra) > 3) %>%
+  count(frase_id_global, palabra) %>%
+  cast_dtm(frase_id_global, palabra, n)
+
+```
+
