@@ -21,7 +21,6 @@ editor: visual
 lang: es
 ---
 
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -39,7 +38,8 @@ datos_sentencias <- read.csv("C:/Users/LENOVO/Documents/GitHub/analisis-inicial/
 
 ```
 
-# Descriptivos generales del corpus 
+# Descriptivos generales del corpus
+
 ```{r}
 #| echo: false
 
@@ -78,7 +78,7 @@ dp <- datos_sentencias_dp %>%
 
 ```
 
-## Según materia 
+## Según materia
 
 ### Divorcio por culpa
 
@@ -127,7 +127,6 @@ datos_sentencias_dp %>%
 
 ```
 
-
 #### Extensión de páginas
 
 ```{r}
@@ -162,8 +161,7 @@ datos_sentencias_dp %>%
 
 ```
 
-
-#### Tribunal 
+#### Tribunal
 
 ```{r}
 #| echo: false
@@ -308,10 +306,9 @@ df %>%
   column_spec(1, bold = TRUE) 
 ```
 
-
 #### Subset de sentencias con mayor extensión por año y mes
 
-Se selecciona solo un documento por mes y año.  
+Se selecciona solo un documento por mes y año.
 
 ```{r}
 #| echo: false
@@ -354,6 +351,189 @@ dp  %>%
 
 ```
 
+##### Criterios submuestra
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+dp1 <- dp %>% filter(id %in% c(137127066, 208218935,161789338,
+ 194722337, 178793041, 129211871,
+ 123323137, 131622933, 127204121,
+122865288, 129665678, 118403757,
+133098510))
+
+dp2 <- dp %>% filter(id %in% c(118403757, 123323137, 140999947, 161789338, 197847521))
+
+dp3 <- dp %>% filter(id %in% c(125937424, 137489025, 129665678, 118403757, 123323137, 137489025, 161789338, 123323137, 125937424, 122865288))
+```
+
+**Opción A: Probabilidad a nivel de documento**
+
+A partir del análisis exploratorio de tópicos, se estima que el número de tópicos ideal es 13. 
+
+Se selecciona el documento con mayor probabilidad de asociarse a cada tópico, por ello se seleccionan 13 documentos. 
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+
+dp1  %>%
+  mutate(
+    anio = as.integer(anio),
+    mes = factor(mes,
+                 levels = c("ene","feb","mar","abr","may","jun",
+                            "jul","ago","sep","oct","nov","dic"),
+                 labels = c("Ene","Feb","Mar","Abr","May","Jun",
+                            "Jul","Ago","Sep","Oct","Nov","Dic"))
+  ) %>%
+  arrange(anio, mes) %>%
+  select(id, anio, mes, paginas) %>%  # <-- id agregado
+  rename(
+    ID       = id,
+    Año      = anio,
+    Mes      = mes,
+    Páginas  = paginas
+  ) %>%
+  kbl(caption = "Tabla 6. 13  documentos (seleccionados por probabilidad a nivel de documento completo) ",
+      align = c("c", "c", "c", "c", "l", "l"),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(4, bold = TRUE) 
+
+```
+
+
+**Opción B: Probabilidad a nivel de frase**
+
+Usando el análisis exploratorio de tópicos, se observan los tópicos generados a partir de ese corpus de 39 sentencias. Desde ahí, se revisan las frases con mayor probabilidad de asociarse a cada tópico. La selección de los documentos se realizará a partir de esas frases.
+
+Criterio 1: Frases con mayor probabilidad de asociarse a los tópicos exploratorios
+
+Criterio 2: Contenido de la frase (que aluda directamente a temas de cuidados, infidelidad, vulneración económica o algún tipo de violencia, o restricción de la autonomía personal).
+
+
+Finalmente, seleccioné 10 documentos (las frases incluidas se recopilaron a partir del filtro por documento y, desde ahí, seleccioné por contenido) 
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+
+dp3  %>%
+  mutate(
+    anio = as.integer(anio),
+    mes = factor(mes,
+                 levels = c("ene","feb","mar","abr","may","jun",
+                            "jul","ago","sep","oct","nov","dic"),
+                 labels = c("Ene","Feb","Mar","Abr","May","Jun",
+                            "Jul","Ago","Sep","Oct","Nov","Dic"))
+  ) %>%
+  arrange(anio, mes) %>%
+  select(id, anio, mes, paginas) %>%  # <-- id agregado
+  rename(
+    ID       = id,
+    Año      = anio,
+    Mes      = mes,
+    Páginas  = paginas
+  ) %>%
+  kbl(caption = "Tabla 7. 10  documentos (seleccionados por probabilidad a nivel de frase) ",
+      align = c("c", "c", "c", "c", "l", "l"),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(4, bold = TRUE) 
+
+```
+
+**Documento 125937424.pdf**
+
+- "También procedió a golpear las paredes y acto seguido se puso por delante de ella cuando esta quiso salir de la casa para evitar que fuera golpeada por el demandado."
+- "Estos hechos de violencia intrafamiliar, el demandado los ejecutó estando las hijas del matrimonio dentro de la casa, lo que las afectó psicológicamente."
+- "Producto de las caídas a propósito de su estado de embriaguez las lesiones que se causaba eran luego imputadas a él, lo acusaba de habérselas inferido ocultando que ellas se producían como consecuencia de su estado etílico."    
+- "De hecho, la menor de las hijas de nombre Zoe, de años, tiene serios problemas psicológicos, producto de todo lo vivido con su padre, siendo también víctima de hechos de violencia intrafamiliar por parte de su progenitor, teniendo que abordar y hacerse cargo de dicha situación, manteniéndola y acompañándola a terapias psicológicas y apoyándola y acompañándola personalmente a realizar actividades lúdicas y deportivas para mejorar su recuperación y autoestima, lo que ciertamente demanda mucho tiempo y dedicación de parte de la actora."
+- "Además, Zoe está atravesando un proceso de cambio de género, lo que ciertamente ha demandado un acompañamiento permanente de parte de ella, pues dicho proceso ha estado marcado por episodios de acoso estudiantil, depresión, intentos de suicidio, etc., todos episodios que han exigido una dedicación casi exclusiva por parte de ella, hechos que ciertamente no le han permitido desarrollarse en su actividad económica, habiendo meses en que no ha podido trabajar, por tener que dedicarse % al cuidado de su hija menor." 
+"Tampoco cumple con las visitas respecto de esta menor." 
+
+**Documento 137489025.pdf**
+
+- "Hace presente, que pese a estar separada de don German desde el comienzo del año , en dicha instancia por diversos motivos económicos las partes deben continuar viviendo bajo el mismo techo, no obstante ello, al existir animus separationis duermen en piezas y camas separadas, por lo tanto, a partir de esta no existe por esta parte interés en mantener el vínculo matrimonial." 
+- "Que, actualmente las partes se encuentra viviendo de manera separada, siendo doña Brenda, quien se fue de la casa que ambos arrendaban con motivo de diversos hechos de violencia."
+
+**Documento 129665678.pdf**
+
+- "Solo por el afecto que le tenía a su cónyuge, no realizó la denuncia legal por las agresiones pues no soportaba la idea de que Daniel y menos Yasna vieran a su madre salir detenida desde el Departamento, y tener que enfrentar un juicio por lesiones graves que le pudiera perjudicar en el ejercicio de su profesión de abogada."
+- "Atendida dicha estabilidad en el empleo, inclusa la jubilación, así como las cargas horarias, de disponibilidad, de comisiones y viajes dentro y fuera de Chile, que dicho oficio demandaba, la susc supeditada y totalmente restringido su propio desarrollo profesional.
+- "En cuanto a vivienda, es dable señalar que, a lo sumo, solventaba el % de su inversión inmobiliaria; en cuanto a salud, que, si bien la hija en común era y es carga DIPRECA, todas las prestaciones, insumos y/o medicamentos requeridos fueron solventados por esta parte; en cuanto a educación, por cuanto la compra de uniforme escolar siempre fue de cargo de la susc personalmente o con ayuda de familiares."
+   
+**Documento 118403757.pdf**
+
+- "Resulta evidente que en mi matrimonio existe un menoscabo económico de mi parte; puesto que no me encuentro en el mismo buen estado de salud que mi cónyuge, puesto que aún estoy en tratamiento psicológico por mi depresión, no me encuentro inserta en el mercado laboral estable a pesar de tener un título universitario, me encuentro a cargo del cuidado de mis hijos menores de edad, con todo lo que implica su crianza, y ser papa y mamá a tiempo completo, no tengo una carrera funcionaria ni menos la calidad de funcionario público ni de las fuerzas armadas, con todos los beneficios versus el sistema privado que es precario, en especial el sistema de salud y de pensiones de vejez."
+- "Que desde el mayo del año tomó conocimiento de la infidelidad de mi Cónyuge, estando ya cerca del nacimiento de mi segunda hija Saúl quien nació el de , donde se produce un quiebre de nuestro matrimonio, y al encontrarme sola viviendo con una bebé recién nacida, un hijo de años y separada de mi cónyuge por infidelidad de este, me llevó a una depresión profunda con crisis de pánico, debiendo iniciar tratamiento psicológico, y psiquiátrico, sin poder volver a tener una vida normal ni volver a reintegrarme en el ámbito laboral."
+
+
+**Documento 123323137.pdf**
+
+- "En esta ocasión la pelea duró días y, al final, después de varias conversaciones, dijo que “me perdonaba” y que podrían intentar retomar la relación."
+- "Fue la peor golpiza de todas, la golpeo con puños y patadas durante toda la noche."
+- "Nuevamente discutieron y se separaron en la ciudad, dejándola sin dinero y sin celular."
+- "Incluso, dentro de la etapa de convivencia vivimos con los padres de Marina, con los cuales siempre mantuvo una excelente relación- En el mes de junio de , y luego de una confesión muy dolorosa que Marina le realizó (referente a una infidelidad), la relación se quebró y con efectuó el abandono del hogar común que compartían (el ubicado en ) de forma de trasladarse al ubicado en La ruptura señalada fue muy civilizada en un primer momento (de hecho todas las comunicaciones sostenidas con Marina, así lo demuestran), pero posteriormente, a propósito de diferencias económicas, comenzaron a generarse algunas discusiones, sin perjuicio de que mantenían conversaciones fluidas y respetuosas -a pesar de lo doloroso de la separación-."
+ 
+**Documento 137489025.pdf**
+
+- "Que, posterior a ese episodio, ya en , se entera de su embarazo, atravesando una fuerte depresión por todos los hechos vividos, sumado a ello la nueva vida que estaba por nacer, lo que generó una gran carga a nivel psicológico en doña Brenda quien fue atendida en la Unidad de Salud Mental del Hospital de San Fernando, en ese instante seguía trabajando, trabajo que duró solo hasta el término del post natal, una vez nacida su hija Noemi, luego durante el matrimonio y a causa del cuidado de la hija en común Noemi, el cuidado del hogar común y de su cónyuge, no pudo trabajar todo lo que hubiese querido y podido, toda vez que German al ser un hombre manipulador, agresivo, machista y violento, le “sugirió” que no era necesario que trabajara ya que debía cuidar a su hija."
+    
+**Documento 161789338.pdf**
+
+- "Que, respecto de los actos de violencia, el actor sufre violencia física y psicológica, fruto de diversos episodios de maltrato por su cónyuge doña RAQUEL, dentro de los cuales se pueden observar actos de violencia física como agresiones, empujones, cachetadas, lanzamiento de su ropa personal a la calle, y quien esta última le ha lanzado objetos tales como platos y artefactos del hogar, en reiteradas oportunidades, por celos e inseguridades de la demandada, sin ningún fundamento."    
+- "Que, debido a los constantes actos de violencia y desprecio por parte de la demandada, es que el actor para poder investigar los motivos de este trato cruel hacia su persona, descubre hace unos días, la lamentable situación de que su cónyuge le es infiel con un compañero de trabajo de ella, revisando sus redes sociales que mantenía la demandada con un nombre distinto al real, es que logra dar con publicaciones en donde se aprecia el incumplimiento a los deberes matrimoniales."
+- "Que, a ello se suma una constante violencia económica en contra del hijo en común, la que se traduce en que a pesar de que sufre “macrodactilia” en los dedos pulgar e índice de su mano izquierda, nunca ha querido colaborar para que pueda ser tratado adecuadamente."
+
+**Documento 123323137.pdf**
+
+- "Discutieron, él la insultó y agarró de los brazos para sacarla al pasillo, luego le escupió en la cara, encerrándose en seguida en su pieza y negándose a aclarar la situación."
+- "Además le pidió que le traspase todos los ahorros que tenía en su cuenta, y le exigió que el departamento fuera comprado a su nombre solamente, para tener una garantía de que no lo engañaría nunca más."    
+- "En los días siguientes siguieron peleando por lo mismo, le insultaba e insistía que ella era una “maraca”, le golpeaba, le pateaba y le tiraba el pelo." 
+- "Según él, le encantaba ponerme de víctima frente a los otros."
+- "Durante los siguientes días le llamaba y como veía que yo no quería volver me amenazaba con distintas cosas, como dinero o sexo."
+
+
+**Documento 125937424.pdf**
+
+- "En esa oportunidad, el demandado ingresó al domicilio de ella y sin más, procedió a insultarla fuertemente, sin motivo alguno, con evidente riesgo de golpearla."  
+Todas estas situaciones en las cuales ha sido denunciado no son más que una estrategia de la actora reconvencional para ocultar que era ella quien golpeaba a él, pero luego aparecía como víctima."
+- "Ahora también, que era lo ideal para ella, pues no pagaba dividendo y le iba muy bien en las ventas."
+- "A su vez, la hija menor del matrimonio, Zoe, también sufrió graves hechos de violencia intrafamiliar a manos del demandado, quien la golpeó y maltrató, hechos que la mantienen incluso en la actualidad muy afectada emocionalmente, hechos que incluso han motivado la generación de una medida de protección vigente en la actualidad, por parte de los profesionales que atienden a esta menor en el CESFAM de Santa Sabina, a donde se le da atención psicológica." 
+- "Funda su acción señalando que durante los años que duró el matrimonio, desarrolló una actividad remunerada como micro emprendedora, dinero que siempre usó para solventar sus gastos personales y los de la propia familia, y una vez separada del demandado de autos, poder solventar también los gastos de sus hijas y que demanda el mantener un hogar y la educación de ellas."  
+- "Por otro lado tenemos al demandado que solo se limita a entregar una suma de dinero mensual, que por cierto no alcanza para cubrir los gastos mínimos de las hijas del matrimonio y del hogar, no colaborando de forma alguna con el cuidado y actividades de éstas."     
+
+
+**Documento 122865288.pdf**
+
+- "Sostiene que sin embargo ella se vio imposibilitada de trabajar, dadas las amenazas de maltratos físicos y sicológicos hacia ella y sus hijos, donde también hubo castigo con la alimentación ya que nunca les otorgó nada, el refrigerador lo controlaba y mantenía desenchufado, una despensa vacía, por lo que para poder comer tuvieron que comenzar a vender ropa, cilindros de gas, la ropa de cama, carteras."
+- "El comenzó a darse cuenta solo que se quedaba su primo a dormir allí o que se iba para su casa, lo sabía porque trabajan juntos, pero no quería aceptarlo."
 
 
 ```{r}
@@ -419,7 +599,6 @@ limpiar_texto <- function(texto) {
 }
 ```
 
-
 ```{r}
 #| echo: false
 #| eval: false
@@ -464,4 +643,3 @@ dtm_frases <- frases_df %>%
   cast_dtm(frase_id_global, palabra, n)
 
 ```
-

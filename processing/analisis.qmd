@@ -145,7 +145,6 @@ psentencia <- objeto_palabra(dfm_sentencia)
 
 # I. Análisis léxico-estadístico
 
-
 ## a) Palabras más repetidas
 
 ```{r}
@@ -177,8 +176,6 @@ ggplot(psentencia,aes(x=palabra,y=freq))+
             position = position_dodge(width=0.9), 
             size = 4)
 ```
-
-
 
 ## b) Oraciones de palabras claves
 
@@ -260,6 +257,7 @@ generar_tabla(contexto_sentencia, "casa")
 ```
 
 ### Cónyuge
+
 ```{r}
 #| warning: false
 #| echo: false
@@ -298,8 +296,7 @@ generar_tabla(contexto_sentencia, "hijos")
 generar_tabla(contexto_sentencia, "matrimonio")
 ```
 
-
-### Relación 
+### Relación
 
 ```{r}
 #| warning: false
@@ -307,7 +304,7 @@ generar_tabla(contexto_sentencia, "matrimonio")
 generar_tabla(contexto_sentencia, "relación")
 ```
 
-### Infidelidad 
+### Infidelidad
 
 ```{r}
 #| warning: false
@@ -315,19 +312,17 @@ generar_tabla(contexto_sentencia, "relación")
 generar_tabla(contexto_sentencia, "infidelidad")
 ```
 
-
 ### Intimidad
+
 ```{r}
 #| warning: false
 #| echo: false
 generar_tabla(contexto_sentencia, "intimidad")
 ```
 
-
 # II. Análisis sintáctico-semántico
 
-## a) Análisis de sentimientos 
-
+## a) Análisis de sentimientos
 
 ```{r}
 #| echo: false
@@ -424,7 +419,9 @@ data <- data %>%
   mutate(sentiment = labels,
          prob = prob)
 ```
+
 ### Cónyuge
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -437,7 +434,7 @@ data %>%
   
 ```
 
-### Infidelidad 
+### Infidelidad
 
 ```{r}
 #| echo: false
@@ -483,9 +480,7 @@ data1 %>%
   kableExtra::kable_styling(font_size = 20)
 ```
 
-
 ## b) Embeddings
-
 
 ```{r}
 #| echo: false
@@ -591,6 +586,7 @@ encontrar_paginas("infidelidad", n = 3)
 ```
 
 #### Tópicos
+
 ```{r}
 #| echo: false
 #| warning: false

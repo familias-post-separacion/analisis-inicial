@@ -21,19 +21,17 @@ editor: visual
 lang: es
 ---
 
-### Presentación 
+### Presentación
 
-El análisis de tópicos nos permite realizar una **primera selección y mapeo del corpus de sentencias**. En este documento se presentan dos formas para realizar un análisis de tópicos: (I) *inductivo mediante el uso LDA*, (II) *deductivo mediante el uso de KeyATM*. 
+El análisis de tópicos nos permite realizar una **primera selección y mapeo del corpus de sentencias**. En este documento se presentan dos formas para realizar un análisis de tópicos: (I) *inductivo mediante el uso LDA*, (II) *deductivo mediante el uso de KeyATM*.
 
-- El primer tipo, nos permite estimar la **cantidad de tópicos óptima que el corpus ofrece**, permitiendonos *explorar* desde los datos mismos. 
+-   El primer tipo, nos permite estimar la **cantidad de tópicos óptima que el corpus ofrece**, permitiendonos *explorar* desde los datos mismos.
 
-- El segundo tipo, nos permite estimar la **cantidad de documentos que pueden vincularse a los tópicos teóricamente propuestos**. 
+-   El segundo tipo, nos permite estimar la **cantidad de documentos que pueden vincularse a los tópicos teóricamente propuestos**.
 
-Ambos nos permiten ver la *probabilidad* de que los documentos se relacionen con cada tópico. 
+Ambos nos permiten ver la *probabilidad* de que los documentos se relacionen con cada tópico.
 
-
-En una primera instancia, este análisis de tópicos nos permite explorar el corpus, pero al mismo tiempo realizar una **primera selección de documentos a partir de mayor probabilidad de representar el tópico**. 
-
+En una primera instancia, este análisis de tópicos nos permite explorar el corpus, pero al mismo tiempo realizar una **primera selección de documentos a partir de mayor probabilidad de representar el tópico**.
 
 ```{r}
 #| echo: false
@@ -63,15 +61,12 @@ corpus_sentencia <- str_to_lower(corpus_sentencia)
 
 Se presentan **887 sentencias**
 
-- responden a la materia "*DIVORCIO POR CULPA*" 
-- emtre los años **2023** y **2024**. 
-
+-   responden a la materia "*DIVORCIO POR CULPA*"
+-   emtre los años **2023** y **2024**.
 
 ### Análisis de tópicos
 
-
 #### I. INDUCTIVO
-
 
 ##### A nivel de palabras
 
@@ -115,7 +110,8 @@ perplejidad <- map_dbl(valores_k, function(k) {
 resultados_k <- tibble(k = valores_k, perplejidad = perplejidad)
 ```
 
- **Análisis de perplejidad (k óptimo)**
+**Análisis de perplejidad (k óptimo)**
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -127,9 +123,7 @@ plot(valores_k, perplejidad, type = "b", pch = 19,
      main = "Selección de k óptimo")
 ```
 
-
-El análisis de perplejidad nos indica que el **número óptimo de tópicos es 16**.  
-
+El análisis de perplejidad nos indica que el **número óptimo de tópicos es 16**.
 
 ```{r}
 #| echo: false
@@ -147,8 +141,8 @@ modelo_lda <- LDA(
 
 ```
 
+**Palabras por tópico**
 
- **Palabras por tópico**
 ```{r}
 #| echo: false
 #| warning: false
@@ -168,9 +162,8 @@ palabras_topicos %>%
   print()
 
 ```
-Se indica que agrupe las 20 palabras con mayor probabilidad de ser parte del tópico. 
 
-
+Se indica que agrupe las 20 palabras con mayor probabilidad de ser parte del tópico.
 
 ```{r}
 #| echo: false
@@ -215,7 +208,6 @@ g3
 g4
 
 ```
-
 
 ##### A nivel de FRASES
 
@@ -332,31 +324,31 @@ print(top_frases_por_topico)
 
 ```
 
-Topic 1 
+Topic 1
 
 ```{r}
 print(top_frases_por_topico$frase[1:10])
 ```
 
-Topic 2 
+Topic 2
+
 ```{r}
 print(top_frases_por_topico$frase[11:20])
 ```
 
-Topic 3 
+Topic 3
 
 ```{r}
 print(top_frases_por_topico$frase[21:30])
 ```
 
-Topic 4 
+Topic 4
 
 ```{r}
 print(top_frases_por_topico$frase[31:41])
 ```
 
-
-Topic 5 
+Topic 5
 
 ```{r}
 print(top_frases_por_topico$frase[42:51])
@@ -368,12 +360,11 @@ Topic 6
 print(top_frases_por_topico$frase[52:61])
 ```
 
-Topic 7 
+Topic 7
 
 ```{r}
 print(top_frases_por_topico$frase[62:71])
 ```
-
 
 ##### A nivel de documento
 
@@ -433,7 +424,6 @@ doc_topico_dominante %>%
   theme_minimal(base_size = 12)
 ```
 
-
 ```{r}
 # Seleccionar documentos con alta certeza de pertenencia a su tópico
 muestra_reducida <- doc_topico_dominante %>%
@@ -446,16 +436,13 @@ muestra_reducida <- doc_topico_dominante %>%
 cat("Documentos seleccionados:", nrow(muestra_reducida), "de", nrow(docs_df))
 ```
 
-
 #### II. DEDUCTIVO
-
 
 **Modelo KeyATM (Keyword Assisted Topic Models)**
 
-- permite proponer palabras semilla (seed words) por tópico, que se utilizan como anclas semánticas
-- bayesiano y con probabilidades interpretables
-- en su output nos entrega un objeto data.frame que indica la probabilidad de cada documento al tópico (esto implica disntiguir bien los elementos cuando realizamos el corpus)
-
+-   permite proponer palabras semilla (seed words) por tópico, que se utilizan como anclas semánticas
+-   bayesiano y con probabilidades interpretables
+-   en su output nos entrega un objeto data.frame que indica la probabilidad de cada documento al tópico (esto implica disntiguir bien los elementos cuando realizamos el corpus)
 
 ```{r}
 #| echo: false
@@ -463,7 +450,6 @@ cat("Documentos seleccionados:", nrow(muestra_reducida), "de", nrow(docs_df))
 #| message: false
 pacman::p_load(keyATM, quanteda)
 ```
-
 
 ```{r}
 #| echo: false
@@ -498,8 +484,6 @@ dfm_corpus <- dfm(toks) %>%
 
 ```
 
-
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -508,9 +492,10 @@ dfm_corpus <- dfm(toks) %>%
 keyatm_docs <- keyATM_read(texts = dfm_corpus)
 ```
 
- **Identfiicar los tópicos y sus palabras semilla**
+**Identfiicar los tópicos y sus palabras semilla**
 
 En este paso es importante tener claridad de los tópicos que nos gustaría probar que permitan capturar correctamente la *"gramática moral*" y la relación con los *ideales democráticos (igualdad y autonomía personal)* en la vida familiar.
+
 ```{r}
 #| echo: true
 #| warning: false
@@ -523,7 +508,6 @@ palabras_clave <- list(
   "derecho_proyecto_propio"      = c("carrera", "proyecto", "vida", "desarrollo", "personal")
 )
 ```
-
 
 ```{r}
 #| echo: false
@@ -540,7 +524,6 @@ modelo_keyatm <- keyATM(
 
 ```
 
-
 **Definir el número de palabras por tópico**
 
 ```{r}
@@ -550,9 +533,6 @@ modelo_keyatm <- keyATM(
 # Ver palabras por tópico
 top_words(modelo_keyatm, n = 15)
 ```
-
-
-
 
 ```{r}
 #| echo: false
@@ -568,14 +548,11 @@ doc_topicos <- as.data.frame(modelo_keyatm$theta) %>%  # theta = prob doc~tópic
   left_join(docs_df, by = "doc_id")
 ```
 
-
-El data.frame doc_topicos nos permite cuantificar, a un nivel general de los documentos, a cual tributan más cada uno en los tópicos propuestos, indicando su probabilidad. Con ello, podemos ver cuáles tienen mayor afinidad (o mayor probabilidad) con el tópico y seleccionar un primer corpus reducido. 
+El data.frame doc_topicos nos permite cuantificar, a un nivel general de los documentos, a cual tributan más cada uno en los tópicos propuestos, indicando su probabilidad. Con ello, podemos ver cuáles tienen mayor afinidad (o mayor probabilidad) con el tópico y seleccionar un primer corpus reducido.
 
 ```{r}
 sjmisc::frq(doc_topicos$topico)
 ```
-
-
 
 ```{r}
 #| echo: false
@@ -586,7 +563,6 @@ top1 <- doc_topicos %>% filter(topico == "1_igualdad_carga_domestica")
 top1 <- top1 %>% filter(probabilidad >=  0.9) #36 filas 
 
 ```
-
 
 ```{r}
 #| echo: false
@@ -617,6 +593,5 @@ top4 <- doc_topicos %>% filter(topico == "4_derecho_proyecto_propio")
 top4 <- top4 %>% filter(probabilidad >=  0.9) #29 filas 
 
 ```
-
 
 IMPORTANTE: mejorar las categorias del modelo keyATM
