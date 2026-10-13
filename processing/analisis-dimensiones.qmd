@@ -1,0 +1,189 @@
+---
+title: "Análisis sentencias "
+author: "Fondecyt Familias"
+fontsize: 12pt
+#bibliography: "../input/mini-proyecto.bib"
+#csl: "input/bib/apa6.csl"
+format:
+  html:
+    toc: true
+    toc-location: right
+    toc-depth: 6
+    toc-expand: 6
+    toc-title: Contenidos
+    number-sections: false
+    number-depth: 6
+    theme: 
+    - cosmo
+    title-block-banner: true
+    title-block-banner-color: "#9265A6"
+editor: visual
+lang: es
+---
+# Descriptivos 
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+pacman::p_load(dplyr, tidyr, stringr, knitr, kableExtra, janitor, data.table)
+
+ruta <- "C:/Users/LENOVO/Documents/GitHub/analisis-inicial/input/busquedas_parrafos/"
+
+# resumen de búsquedas por dimensión
+resumen_busquedas <- read.csv(paste0(ruta, "resumen_busquedas.csv"),
+                              fileEncoding = "UTF-8-BOM")
+
+# párrafos: solo las columnas necesarias (el csv es pesado)
+parrafos_dimensiones <- fread(paste0(ruta, "parrafos_dimensiones.csv"),
+                              select = c("doc_id", "parrafo_uid", "n_dimensiones"),
+                              encoding = "UTF-8")
+
+etiquetas_dim <- c(
+  redistribucion_economica = "Redistribución económica",
+  reconocimiento_cultural  = "Reconocimiento cultural",
+  relacional_cuidado       = "Relacional / cuidado"
+)
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: descriptivo 
+
+total_parrafos   <- nrow(parrafos_dimensiones)
+parrafos_con_dim <- sum(parrafos_dimensiones$n_dimensiones > 0)
+
+tibble(
+  Párrafos = c("Total de párrafos",
+               "Párrafos que tributan a alguna dimensión",
+               "Párrafos sin dimensión"),
+  n = c(total_parrafos,
+        parrafos_con_dim,
+        total_parrafos - parrafos_con_dim)
+) %>%
+  mutate(`%` = round(100 * n / total_parrafos, 1)) %>%
+  rename(`N°` = n) %>%
+  kbl(caption = "Tabla 1. Párrafos totales y párrafos que tributan a alguna dimensión",
+      align = c("l", "c", "c"),
+      format.args = list(big.mark = ".", decimal.mark = ","),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  row_spec(1, bold = TRUE, background = "#f0f0f0")
+```
+
+
+# Análisis léxico 
+
+## Resumen de búsquedas por dimensión
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+resumen_busquedas %>%
+  mutate(grupo = recode(grupo, !!!etiquetas_dim),
+         n_terminos = str_count(terminos, ";") + 1) %>%
+  select(Dimensión = grupo,
+         `N° términos` = n_terminos,
+         `N° párrafos` = n_parrafos,
+         `% párrafos` = pct_parrafos,
+         `N° documentos` = n_documentos,
+         `% documentos` = pct_documentos) %>%
+  kbl(caption = "Tabla 2. Párrafos y documentos con al menos un término por dimensión",
+      align = c("l", rep("c", 5)),
+      format.args = list(big.mark = ".", decimal.mark = ","),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE)
+```
+
+### Frecuencia por término
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+conteo_terminos <- resumen_busquedas %>%
+  select(grupo, conteo_por_termino) %>%
+  separate_rows(conteo_por_termino, sep = ";\\s*") %>%
+  separate(conteo_por_termino, into = c("termino", "n"), sep = "=") %>%
+  mutate(n = as.integer(n),
+         grupo = recode(grupo, !!!etiquetas_dim)) %>%
+  distinct(grupo, termino, .keep_all = TRUE) %>%   # hay términos repetidos en la búsqueda
+  arrange(grupo, desc(n))
+
+conteo_terminos %>%
+  select(Término = termino, `N° párrafos` = n) %>%
+  kbl(caption = "Tabla 3. Párrafos con cada término de búsqueda, por dimensión",
+      align = c("l", "c"),
+      format.args = list(big.mark = "."),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  pack_rows(index = table(factor(conteo_terminos$grupo,
+                                 levels = unique(conteo_terminos$grupo)))) %>%
+  scroll_box(height = "500px")
+```
+
+## Número de dimensiones por párrafo
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+parrafos_dimensiones %>%
+  group_by(n_dimensiones) %>%
+  summarise(n_parrafos   = n(),
+            n_documentos = n_distinct(doc_id),
+            .groups = "drop") %>%
+  mutate(pct_parrafos = round(100 * n_parrafos / sum(n_parrafos), 1),
+         pct_documentos = round(100 * n_documentos /
+                                  n_distinct(parrafos_dimensiones$doc_id), 1)) %>%
+  select(`N° dimensiones` = n_dimensiones,
+         `N° párrafos` = n_parrafos,
+         `% párrafos` = pct_parrafos,
+         `N° documentos` = n_documentos,
+         `% documentos` = pct_documentos) %>%
+  mutate(`N° dimensiones` = as.character(`N° dimensiones`)) %>%
+  adorn_totals("row", fill = "", na.rm = TRUE, name = "Total",
+               `N° párrafos`, `% párrafos`) %>%
+  kbl(caption = "Tabla 4. Distribución de párrafos según número de dimensiones presentes",
+      align = c("l", rep("c", 4)),
+      format.args = list(big.mark = ".", decimal.mark = ","),
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left",
+    font_size = 12
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) %>%
+  footnote(general = "Documentos: sentencias con al menos un párrafo en esa categoría (un documento puede aparecer en varias filas).",
+           general_title = "Nota: ")
+```
+
+
